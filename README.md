@@ -12,7 +12,7 @@
 |[Blockcode: A visual programming toolkit](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Dethe Elza|[Blockcode:可视化编程工具]()|
 |[A Continuous Integration System](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Malini Das|[持续集成系统]()|
 |[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|[分布式系统]()|
-|[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|[协程与爬虫]()|
+|[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|[高效爬虫与协程]()|
 |[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|[Dagoba:内存中的图形数据库]()|
 |[DBDB: Dog Bed Database](http://aosabook.org/en/500L/pages/dbdb-dog-bed-database.html)|Taavi Burns|[DBDB:非关系型数据库]()|
 |[A Flow Shop Scheduler](http://aosabook.org/en/500L/pages/a-flow-shop-scheduler.html)|Dr. Christian Muise|[Flow Shop 调度问题]()|
