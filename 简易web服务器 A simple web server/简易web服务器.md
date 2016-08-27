@@ -1,11 +1,3 @@
-> 原文: [A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)
-> 作者: [Greg Wilson](https://twitter.com/gvwilson)
-
-
-由于译者才疏学浅，翻译不当之处在所难免，望大家不吝指教。另外，本篇文章是我们开源项目 [500LineorLess_CN](https://github.com/HT524/500LineorLess_CN) 的一部分，欢迎大家共同参与！
-
----
-
 [Greg Wilson](https://twitter.com/gvwilson)是 Software Carpentry, 一个科学家和工程师的计算技巧速成班，的创始人。他在工业界和学术界工作了三十年，是好几本关于计算的图书的作者或者编辑，包括了 2008 年 Jolt 图书奖得主 *Beautiful Code* 和 *开源软件架构* 的前两卷。Greg 在 1993 年获得了爱丁堡大学的计算机博士学位。
 
 
@@ -29,11 +21,11 @@
 
 超文本传输协议（HTTP）描述了程序通过 IP 协议交换数据的一种方法。HTTP 协议刻意设计得简单: 客户端通过套接字发送一个请求，指定想要的东西，服务器在响应中返回一些数据（如下图）。该数据或许复制自硬盘上的文件，或许由程序动态生成，或者是二者的混合。
 
-![The HTTP Cycle](./http-cycle.png)
+![The HTTP Cycle](http://ww3.sinaimg.cn/large/005PneI2gw1f71ac7tmsrj30gl05gdhc.jpg)
 
 关于 HTTP 请求，最重要的地方在于，它仅由文本组成。任何有意愿的程序都可以对其进行创建或者解析。不过，为了被正确解析，文本中必须包含下图展示的部分。
 
-![An HTTP Request](./http-request.png)
+![An HTTP Request](http://ww4.sinaimg.cn/large/005PneI2gw1f71aedvqu5j30c404naam.jpg)
 
 HTTP 方法大多是 GET（请求信息）或者 POST（提交表单数据或者上传文件）。统一资源定位器（URL）确定了客户端所请求的，一般是硬盘上文件的路径，比如 `/research/experiments.html`, 但是（接下来才是关键），如何处理完全取决于服务器。HTTP 版本一般是 "HTTP/1.0" 或 "HTTP/1.1"; 二者之间的差异对我们来说并不重要。
 
@@ -53,7 +45,7 @@ If-Modified-Since: 16-May-2005
 
 HTTP 响应格式与 HTTP 请求类似:
 
-![An HTTP Response](http-response.png)
+![An HTTP Response](http://ww1.sinaimg.cn/large/005PneI2gw1f71afn3dm7j30dd0653zg.jpg)
 
 版本号，首部，主体有着相同的格式和意义。状态码是一个数字，用来指示在处理请求时所发生的事情: 200 意味着 "一切工作正常"，404 意味着 "没有找到"，其他状态码也有着各自的含义。 状态词以易读的形式重复着上述信息，比如 "OK" 或 "没找到"。
 
@@ -152,3 +144,447 @@ Hello, web!
 ```
 
 第一行很简单: 因为我们没有要求一个特定的文件，浏览器便请求 '/'（任何正常工作服务器的根目录）。第二行出现是因为浏览器自动发送第二个请求，请求一个叫做 '/favicon.ico' 的图像文件，如果存在，它将在地址栏显示一个图标。
+
+
+## 展示一些值
+
+让我们修改我们的 Web 服务器以展示一些包含在 HTTP 请求中的值。（在调试时，我们会经常这样做，所以不妨先做一些练习。）为了保持代码整洁，我们将分别创建网页和发送。
+
+
+```python
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    # ...page template...
+    def do_GET(self):
+        page = self.create_page()
+        self.send_page(page)
+    def create_page(self):
+        # ...fill in...
+    def send_page(self, page):
+        # ...fill in...
+```
+
+`send_page` 比之前的多很多。
+
+```python
+    def send_page(self, page):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-Length", str(len(page)))
+        self.end_headers()
+        self.wfile.write(page)
+```
+
+我们想要展示的页面的模板只是一个字符串，包含着一个有一些占位符的表格。
+
+```python
+    Page = '''\
+<html>
+<body>
+<table>
+<tr>  <td>Header</td>         <td>Value</td>          </tr>
+<tr>  <td>Date and time</td>  <td>{date_time}</td>    </tr>
+<tr>  <td>Client host</td>    <td>{client_host}</td>  </tr>
+<tr>  <td>Client port</td>    <td>{client_port}s</td> </tr>
+<tr>  <td>Command</td>        <td>{command}</td>      </tr>
+<tr>  <td>Path</td>           <td>{path}</td>         </tr>
+</table>
+</body>
+</html>
+'''
+```
+
+填充表格的方法如下:
+
+```python
+    def create_page(self):
+        values = {
+            'date_time'   : self.date_time_string(),
+            'client_host' : self.client_address[0],
+            'client_port' : self.client_address[1],
+            'command'     : self.command,
+            'path'        : self.path
+        }
+        page = self.Page.format(**values)
+        return page
+```
+
+该程序的主体并没有改变：正如之前，它以地址和请求处理程序作为参数，创建了一个 `HTTPServer` 类的实例，然后一直处理请求。如果我们运行它，然后用浏览器发送一个请求给 `http://localhost:8000/something.html` ,我们将得到: 
+
+```
+  Date and time  Mon, 24 Feb 2014 17:17:12 GMT
+  Client host    127.0.0.1
+  Client port    54548
+  Command        GET
+  Path           /something.html
+```
+
+注意到，我们没有得到一个 404 错误，即使 `something.html` 页面并不存在。这是因为 Web 服务器只是一个程序，当它收到请求时，会做它所需要的任何事情: 返回之前请求提到的文件，提供一个随机选取的维基百科页面，或者我们编程时让它做的任何事情。
+
+## 提供静态页面
+
+显然，接下来的步骤是提供静态文件，取代动态生成。我们将重写 `do_GET`。
+
+```python
+    def do_GET(self):
+        try:
+            # Figure out what exactly is being requested.
+            full_path = os.getcwd() + self.path
+            # It doesn't exist...
+            if not os.path.exists(full_path):
+                raise ServerException("'{0}' not found".format(self.path))
+            # ...it's a file...
+            elif os.path.isfile(full_path):
+                self.handle_file(full_path)
+            # ...it's something we don't handle.
+            else:
+                raise ServerException("Unknown object '{0}'".format(self.path))
+        # Handle errors.
+        except Exception as msg:
+            self.handle_error(msg)
+```
+
+上述方法假设允许程序使用所运行的路径（就是使用 `os.getcwd` 所得到的）下的任意文件提供服务。它会结合 URL 提供的路径（总是以 '/' 开始，`BaseHTTPServer` 会自动将它放入 `self.path`），以获取用户想要的文件的路径。如果文件不存在，或者路径并不指向文件，上述方法将通过获取并抛出异常来报告错误。另一方面，如果路径匹配到文件，`do_GET` 方法将调用辅助方法 `handle_file` 来读取并返回内容。辅助方法仅读取文件，然后调用 `send_content` 将文件内容返回给客户端:
+
+```python
+    def handle_file(self, full_path):
+        try:
+            with open(full_path, 'rb') as reader:
+                content = reader.read()
+            self.send_content(content)
+        except IOError as msg:
+            msg = "'{0}' cannot be read: {1}".format(self.path, msg)
+            self.handle_error(msg)
+```
+
+请注意，我们以二进制方式打开文件——由 'rb' 中 'b' 标识，这样 Python 不会改变看起来像 Windows 行结束的字节序列。同时，请注意，在使用文件提供服务时，将整个文件读入内存在真实生活中并不合适，视频文件大小可能是好几G。处理上述情况已经超出了本章的范围。我们接下来编写错误处理方法和错误处理页面模板来结束本节。
+
+```python
+    Error_Page = """\
+        <html>
+        <body>
+        <h1>Error accessing {path}</h1>
+        <p>{msg}</p>
+        </body>
+        </html>
+        """
+    def handle_error(self, msg):
+        content = self.Error_Page.format(path=self.path, msg=msg)
+        self.send_content(content)
+```
+
+如果我们不仔细观察，程序似乎正常运行。问题在于它总是返回 200 状态码，即使所请求的页面并不存在。是的，返回的页面包含着错误信息，但因为浏览器读不懂英文，它并不知道请求实际上失败了。为了使错误明确，我们需要修改 `handle_error` 和 `send_content` 如下:
+
+```python
+    # Handle unknown objects.
+    def handle_error(self, msg):
+        content = self.Error_Page.format(path=self.path, msg=msg)
+        self.send_content(content, 404)
+    # Send actual content.
+    def send_content(self, content, status=200):
+        self.send_response(status)
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-Length", str(len(content)))
+        self.end_headers()
+        self.wfile.write(content)
+```
+
+注意，当文件找不到时，我们并没有抛出 `ServerException` 异常，而是生成一个错误页面。`ServerException` 意味着服务器内部错误，即，我们弄错了。另一方面，当用户遇到错误时，此处即，请求了一个不存在的文件的 URL 时，由 `handle_error` 生成错误页面。
+
+## 目录列表
+
+下一步，我们将将会服务器，在 URL 中部路径是目录而不是文件时，展示一个目录内容的列表。我们甚至可以更进一步，让程序在目录中寻找 `index.html` 文件来展示。不过在 `do_GET` 中构建这些方法或许是一个错误，因为生成的方法会是很多 `if` 语句混在一起来控制特殊行为。正确的方案是退一步，解决更一般的问题: 弄清楚如何处理一个 URL。
+
+```python
+    def do_GET(self):
+        try:
+            # Figure out what exactly is being requested.
+            self.full_path = os.getcwd() + self.path
+            # Figure out how to handle it.
+            for case in self.Cases:
+                handler = case()
+                if handler.test(self):
+                    handler.act(self)
+                    break
+        # Handle errors.
+        except Exception as msg:
+            self.handle_error(msg)
+```
+
+第一步是相同的: 弄清楚请求的完整路径。之后，代码看起来就不同了。这个版本循环遍历一组存储在列表中的情况，而不是一组内嵌测试。每种情况都是一个有着两个方法的对象，`test` ,告诉我们是否能够处理请求，`act`，实际上进行处理。一旦我们发现正确的情况，我们让它处理请求并跳出循环。这三个类重复之前的服务器的行为:
+
+```python
+class case_no_file(object):
+    '''File or directory does not exist.'''
+    def test(self, handler):
+        return not os.path.exists(handler.full_path)
+    def act(self, handler):
+        raise ServerException("'{0}' not found".format(handler.path))
+class case_existing_file(object):
+    '''File exists.'''
+    def test(self, handler):
+        return os.path.isfile(handler.full_path)
+    def act(self, handler):
+        handler.handle_file(handler.full_path)
+class case_always_fail(object):
+    '''Base case if nothing else worked.'''
+    def test(self, handler):
+        return True
+    def act(self, handler):
+        raise ServerException("Unknown object '{0}'".format(handler.path))
+```
+
+这是我们在 `RequestHandler` 类顶部，如何构建事件处理程序列表:
+
+```python
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    '''
+    If the requested path maps to a file, that file is served.
+    If anything goes wrong, an error page is constructed.
+    '''
+    Cases = [case_no_file(),
+             case_existing_file(),
+             case_always_fail()]
+    ...everything else as before...
+```
+
+现在，表面上我们的服务器更加复杂了，而不是更简洁。文件从 74 行变成 99 行，并有了一个额外的，没有任何新功能的间接层。不过当我们回到本节最初提出的任务: 教会服务器为一个目录请求，在 `index.html` 存在时返回 `index.html`， 不存在时返回目录内容列表，好处随之来临。前者的处理程序如下:
+
+```python
+class case_directory_index_file(object):
+    '''Serve index.html page for a directory.'''
+    def index_path(self, handler):
+        return os.path.join(handler.full_path, 'index.html')
+    def test(self, handler):
+        return os.path.isdir(handler.full_path) and \
+               os.path.isfile(self.index_path(handler))
+    def act(self, handler):
+        handler.handle_file(self.index_path(handler))
+```
+
+接下来，辅助方法 `index_path` 构造 `index.html` 文件的路径；将它放进事件处理程序以防止主类 `RequestHandler` 的杂乱。`test` 检查路径是否是一个包含 `index.html` 页面的目录，`act` 要求主请求处理程序返回这个页面。`RequestHandler` 所需的唯一变化是将一个 `case_directory_index_file` 类加入我们的 `Cases` 列表:
+
+```python
+    Cases = [case_no_file(),
+             case_existing_file(),
+             case_directory_index_file(),
+             case_always_fail()]
+```
+
+What about directories that don’t contain index.html pages?
+The test is the same as the one above
+with a not strategically inserted,
+but what about the act method?
+What should it do?
+要是目录不包含一个 `index.html` 页面呢？`test` 和上面的一个不曾高屋建瓴的插入一致，可是，`act` 方法呢？他应该变成什么样？
+
+```python
+class case_directory_no_index_file(object):
+    '''Serve listing for a directory without an index.html page.'''
+    def index_path(self, handler):
+        return os.path.join(handler.full_path, 'index.html')
+    def test(self, handler):
+        return os.path.isdir(handler.full_path) and \
+               not os.path.isfile(self.index_path(handler))
+    def act(self, handler):
+        ???
+```
+
+It seems we’ve backed ourselves into a corner.
+Logically,
+the act method should create and return the directory listing,
+but our existing code doesn’t allow for that:
+RequestHandler.do_GET calls act,
+but doesn’t expect or handle a return value from it.
+For now,
+let’s add a method to RequestHandler to generate a directory listing,
+and call that from the case handler’s act:
+似乎我们把自己逼进了墙角。逻辑上来说，`act` 方法应该创建并返回目录列表，但我们现存的代码不允许那样: `RequestHandler.do_GET` 调用 `act` 方法，却不期望它返回一个值。让我们暂时为 `RequestHandler` 增加一个方法以生成目录列表，然后使用事件处理器的 `act` 方法调用它:
+
+```python
+class case_directory_no_index_file(object):
+    '''Serve listing for a directory without an index.html page.'''
+    # ...index_path and test as above...
+    def act(self, handler):
+        handler.list_dir(handler.full_path)
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    # ...all the other code...
+    # How to display a directory listing.
+    Listing_Page = '''\
+        <html>
+        <body>
+        <ul>
+        {0}
+        </ul>
+        </body>
+        </html>
+        '''
+    def list_dir(self, full_path):
+        try:
+            entries = os.listdir(full_path)
+            bullets = ['<li>{0}</li>'.format(e) 
+                for e in entries if not e.startswith('.')]
+            page = self.Listing_Page.format('\n'.join(bullets))
+            self.send_content(page)
+        except OSError as msg:
+            msg = "'{0}' cannot be listed: {1}".format(self.path, msg)
+            self.handle_error(msg)
+```
+
+## CGI 协议
+
+理所当然，大多数人不想为了添加新的功能而编辑 web 服务器的源代码。为了将他们从编辑源码拯救出来，服务器一般都支持一种叫做公共网关接口（CGI）的机制，它为 web 服务器提供了一个标准的方式来运行外部程序，以响应请求。比如说，假设我们想要服务器可以在一个 HTML 页面上展示本地时间，我们可以在一个只有几行代码的独立程序中实现:
+
+```python
+from datetime import datetime
+print '''\
+<html>
+<body>
+<p>Generated {0}</p>
+</body>
+</html>'''.format(datetime.now())
+```
+
+为了让 web 服务器运行这个程序，我们添加了下面的事件处理器:
+
+```python
+class case_cgi_file(object):
+    '''Something runnable.'''
+    def test(self, handler):
+        return os.path.isfile(handler.full_path) and \
+               handler.full_path.endswith('.py')
+    def act(self, handler):
+        handler.run_cgi(handler.full_path)
+```
+
+`test` 很简单: 是否文件路径以 `.py` 结尾？是的话，`RequestHandler` 将运行上面的独立程序。
+
+```python
+    def run_cgi(self, full_path):
+        cmd = "python " + full_path
+        child_stdin, child_stdout = os.popen2(cmd)
+        child_stdin.close()
+        data = child_stdout.read()
+        child_stdout.close()
+        self.send_content(data)
+```
+
+This is horribly insecure:
+if someone knows the path to a Python file on our server,
+we’re just letting them run it
+without worrying about what data it has access to,
+whether it might contain an infinite loop,
+or anything else.2
+
+这是非常不安全的: 如果有人知道了我们服务器上一个 Python 文件的路径，我们将允许他运行该程序，而没有考虑，它有权限访问哪些数据，它是否包含一个死循环，或者二者之外。
+
+扫清上述隐患，核心理念很简单:
+
+1. 在一个子进程中运行该程序。
+2. 捕获子进程发送到标准输出的一切。
+3. 返回给发起请求的客户端。
+
+完整的 CGI 协议比这更丰富，它允许 URL 中存在参数，服务器会将它们传入正在运行的程序，但这些细节并不会影响系统的整体架构...
+
+…which is once again becoming rather tangled.
+RequestHandler initially had one method,
+handle_file,
+for dealing with content.
+We have now added two special cases
+in the form of list_dir and run_cgi.
+These three methods don’t really belong where they are,
+since they’re primarily used by others.
+事情再一次变得复杂。 `RequestHandler` 最初有一个方法，`handle_file`，来处理内容。我们现在在 `list_dir` 和 `run_cgi` 中增加两个特殊的情况。这三个方法无所谓在哪儿，因为它们主要由其他方法调用。
+
+The fix is straightforward:
+create a parent class for all our case handlers,
+and move other methods to that class
+if (and only if) they are shared by two or more handlers.
+When we’re done,
+the `RequestHandler` class looks like this:
+解决办法很简单: 为我们所由的事件处理器创建一个父类，当且仅当方法在多个处理器间共享，将他们移入父类中。这样做了之后，`RequestHandler` 类就像下面这样:
+
+``` python
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    Cases = [case_no_file(),
+             case_cgi_file(),
+             case_existing_file(),
+             case_directory_index_file(),
+             case_directory_no_index_file(),
+             case_always_fail()]
+    # How to display an error.
+    Error_Page = """\
+        <html>
+        <body>
+        <h1>Error accessing {path}</h1>
+        <p>{msg}</p>
+        </body>
+        </html>
+        """
+    # Classify and handle request.
+    def do_GET(self):
+        try:
+            # Figure out what exactly is being requested.
+            self.full_path = os.getcwd() + self.path
+            # Figure out how to handle it.
+            for case in self.Cases:
+                if case.test(self):
+                    case.act(self)
+                    break
+        # Handle errors.
+        except Exception as msg:
+            self.handle_error(msg)
+    # Handle unknown objects.
+    def handle_error(self, msg):
+        content = self.Error_Page.format(path=self.path, msg=msg)
+        self.send_content(content, 404)
+    # Send actual content.
+    def send_content(self, content, status=200):
+        self.send_response(status)
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-Length", str(len(content)))
+        self.end_headers()
+        self.wfile.write(content)
+```
+
+我们的事件处理程序的父类如下:
+
+```python
+class base_case(object):
+    '''Parent for case handlers.'''
+    def handle_file(self, handler, full_path):
+        try:
+            with open(full_path, 'rb') as reader:
+                content = reader.read()
+            handler.send_content(content)
+        except IOError as msg:
+            msg = "'{0}' cannot be read: {1}".format(full_path, msg)
+            handler.handle_error(msg)
+    def index_path(self, handler):
+        return os.path.join(handler.full_path, 'index.html')
+    def test(self, handler):
+        assert False, 'Not implemented.'
+    def act(self, handler):
+        assert False, 'Not implemented.'
+```
+
+现存文件处理程序如下（随机选择一个例子）:
+
+```python
+class case_existing_file(base_case):
+    '''File exists.'''
+    def test(self, handler):
+        return os.path.isfile(handler.full_path)
+    def act(self, handler):
+        self.handle_file(handler, handler.full_path)
+```
+
+## 讨论
+
+The differences between our original code and the refactored version reflect two important ideas. The first is to think of a class as a collection of related services. RequestHandler and base_case don’t make decisions or take actions; they provide tools that other classes can use to do those things.
+The second is extensibility: people can add new functionality to our web server either by writing an external CGI program, or by adding a case handler class. The latter does require a one-line change to RequestHandler (to insert the case handler in the Cases list), but we could get rid of that by having the web server read a configuration file and load handler classes from that. In both cases, they can ignore most lower-level details, just as the authors of the BaseHTTPRequestHandler class have allowed us to ignore the details of handling socket connections and parsing HTTP requests.
+These ideas are generally useful;see if you can find ways to use them in your own projects.
+
+---
+
+1. We’re going to use handle_error several times throughout this chapter, including several cases where the status code 404 isn’t appropriate. As you read on, try to think of how you would extend this program so that the status response code can be supplied easily in each case. ↩
+2. Our code also uses the popen2 library function, which has been deprecated in favor of the subprocess module. However, popen2 was the less distracting tool to use in this example.
