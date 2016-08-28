@@ -21,11 +21,11 @@
 
 超文本传输协议（HTTP）描述了程序通过 IP 协议交换数据的一种方法。HTTP 协议刻意设计得简单: 客户端通过套接字发送一个请求，指定请求的东西，服务器在响应中返回一些数据（如下图）。该数据或许复制自硬盘上的文件，或许由程序动态生成，或是二者的混合。
 
-![The HTTP Cycle](http://ww3.sinaimg.cn/large/005PneI2gw1f71ac7tmsrj30gl05gdhc.jpg)
+![The HTTP Cycle](./http-cycle.png)
 
 关于 HTTP 请求，最重要的地方在于，它仅由文本组成。任何有意愿的程序都可以对其进行创建或解析。不过，为了被正确地解析，文本中必须包含下图所展示的部分。
 
-![An HTTP Request](http://ww4.sinaimg.cn/large/005PneI2gw1f71aedvqu5j30c404naam.jpg)
+![An HTTP Request](./http-request.png)
 
 HTTP 方法大多是 GET（请求信息）或者 POST（提交表单或上传文件）。统一资源定位器（URL）确定了客户端所请求的文件路径，一般位于硬盘上，比如 `/research/experiments.html`, 但是（接下来才是关键），如何处理完全取决于服务器。HTTP 版本一般是 "HTTP/1.0" 或 "HTTP/1.1" ; 二者之间的差异对我们来说并不重要。
 
@@ -45,7 +45,7 @@ If-Modified-Since: 16-May-2005
 
 HTTP 响应的格式与 HTTP 请求类似:
 
-![An HTTP Response](http://ww1.sinaimg.cn/large/005PneI2gw1f71afn3dm7j30dd0653zg.jpg)
+![An HTTP Response](./http-response.png)
 
 版本号，首部，主体有着相同的格式和意义。状态码是一个数字，用来指示在处理请求时所发生的事情: 200 意味着 "一切工作正常"，404 意味着 "没有找到"，其他状态码也分别有着各自的含义。 状态词以易读的形式重复着上述信息，比如 "一切正常" 或是 "没有找到"。
 
