@@ -59,7 +59,7 @@ HTTP 响应的格式与 HTTP 请求类似:
 
 当然，如果 '?' 和 '&' 用作特殊字符，必然有方法加以避免，正如必须有方法将一个双引号字符放置在由双引号分隔的字符串内。URL 编码标准使用 '%' 后跟两位代码表示特殊字符，并使用 '+' 字符替代空格。因此，我们使用 URL `http://www.google.ca/search?q=grade+%3D+A%2B` 在谷歌中搜索 "grade&nbsp;=&nbsp;A+"（注意空格）。
 
-打开套接字，构建 HTTP 请求，解析响应极其乏味，因此大多数用户使用库来做大部分工作。Python 附带了一个这样的库，叫做 `urllib2`（因为它是之前的库 `urllib` 的代替者），但是它暴露了许多大多数用户不关心的东西。相比于 `urllib2`，`Request` 库是一个更加易于使用的选择。接下来是一个例子，使用 Request 下载来自 AOSA book 站点的一个页面。
+打开套接字，构建 HTTP 请求，解析响应极其乏味，因此大多数用户使用库来做大部分工作。Python 附带了一个这样的库，叫做 `urllib2`（因为它是之前的库 `urllib` 的代替者），但是它暴露了许多大多数用户不关心的东西。相比于 `urllib2`，`Requests` 库是一个更加易于使用的选择。接下来是一个例子，使用 Requests 下载来自 AOSA book 站点的一个页面。
 
 ```python
 import requests
@@ -79,7 +79,7 @@ content length: 61
 </html>
 ```
 
-`request.get` 向服务器发送一个 HTTP GET 请求，返回一个包含响应的对象。该对象的 `status_code` 是响应的状态码；它的 `content_length` 是响应数据的字节数； `text` 是真正的数据（在这个例子中，是一个 HTML 页面）。
+`requests.get` 向服务器发送一个 HTTP GET 请求，返回一个包含响应的对象。该对象的 `status_code` 是响应的状态码；它的 `content_length` 是响应数据的字节数； `text` 是真正的数据（在这个例子中，是一个 HTML 页面）。
 
 ## Hello, Web
 
