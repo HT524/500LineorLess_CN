@@ -3,7 +3,30 @@
 
 [原文链接](http://aosabook.org/en/500L/)
 
-[原文Git地址](https://github.com/aosabook/500lines/blob/master/README.md)
+[英文项目地址](https://github.com/aosabook/500lines/blob/master/README.md)
+
+## 认领表
+
+|标题|译者|进度|
+|:------|:------|:------|
+|Blockcode: A visual programming toolkit|  待认领  ||
+|A Continuous Integration System|  待认领  ||
+|Clustering by Consensus|待认领||
+|A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|努力翻译中|
+|Dagoba: an in-memory graph database|待认领||
+|DBDB: Dog Bed Database|待认领||
+|A Flow Shop Scheduler|待认领||
+|An Archaeology-Inspired Database|待认领||
+|A Python Interpreter Written in Python|待认领||
+|A 3D Modeller|待认领||
+|A Simple Object Model|[skhe](https://github.com/skhe)|努力翻译中|
+|Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|努力翻译中|
+|A Pedometer in the Real World|待认领||
+|A Rejection Sampler|待认领||
+|Web Spreadsheet|待认领||
+|Static Analysis|待认领||
+|A Template Engine|待认领||
+|A Simple Web Server|[skhe](https://github.com/skhe)|已完成|
 
 ## 对应表
 
@@ -26,4 +49,5 @@
 |[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)|Audrey Tang|[Web 电子表格]()|
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|[静态检查]()|
 |[	A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板解析器]()|
-|[	A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器]()|
+|[	A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
+
