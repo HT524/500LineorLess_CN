@@ -27,6 +27,7 @@
 
 ![An HTTP Request](./http-request.png)
 
+(注: 'sp':空格, 'cr lf':换行)
 HTTP 方法大多是 GET（请求信息）或者 POST（提交表单或上传文件）。统一资源定位器（URL）确定了客户端所请求的文件路径，一般位于硬盘上，比如 `/research/experiments.html`, 但是（接下来才是关键），如何处理完全取决于服务器。HTTP 版本一般是 "HTTP/1.0" 或 "HTTP/1.1" ; 二者之间的差异对我们来说并不重要。
 
 HTTP 首部（Headers）是一组键值对，如同下面这三行：
