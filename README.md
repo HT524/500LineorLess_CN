@@ -34,7 +34,7 @@
 
 |标题|译者|进度|
 |:------|:------|:------|
-|Blockcode: A visual programming toolkit|  已完成  |[taozi_cao](http://my.csdn.net/cwt8805)|
+|Blockcode: A visual programming toolkit|[taozi_cao](http://my.csdn.net/cwt8805)|已完成|
 |A Continuous Integration System|  待认领  ||
 |Clustering by Consensus|待认领||
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|努力翻译中|
