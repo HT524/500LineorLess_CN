@@ -27,7 +27,7 @@
 |[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|决策取样器|
 |[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)|Audrey Tang|Web 电子表格|
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|静态检查|
-|[	A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|模板解析器|
+|[A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板引擎](http://www.jianshu.com/p/b5d4aa45e771)|
 |[	A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
 
 ## 认领表
@@ -50,7 +50,7 @@
 |A Rejection Sampler|待认领||
 |Web Spreadsheet|待认领||
 |Static Analysis|待认领||
-|A Template Engine|待认领||
+|A Template Engine|[treelake](http://www.jianshu.com/users/66f24f2c0f36/latest_articles)|已完成|
 |A Simple Web Server|[skhe](https://github.com/skhe)|已完成|
 
 
