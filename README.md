@@ -11,7 +11,7 @@
 
 |英文标题|作者|中文标题|
 |:------|:------|:------|
-|[Blockcode: A visual programming toolkit](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Dethe Elza|Blockcode:可视化编程工具|
+|[Blockcode: A visual programming toolkit](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Dethe Elza|[Blockcode:可视化编程工具](http://blog.csdn.net/code_for_fun/article/details/51898028)|
 |[A Continuous Integration System](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Malini Das|持续集成系统|
 |[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|分布式系统|
 |[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|高效爬虫与协程|
@@ -34,7 +34,7 @@
 
 |标题|译者|进度|
 |:------|:------|:------|
-|Blockcode: A visual programming toolkit|  待认领  ||
+|Blockcode: A visual programming toolkit|  已完成  |[taozi_cao](http://my.csdn.net/cwt8805)|
 |A Continuous Integration System|  待认领  ||
 |Clustering by Consensus|待认领||
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|努力翻译中|
