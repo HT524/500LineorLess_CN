@@ -683,7 +683,7 @@ class DamageDistribution(object):
 ```
 如果我们将伤害样本作一个统计直方图，得到以下的结果:
 
-![fig1](./image/figure_1.png)
+![fig1](./image/damage_distribution.png)
 
 可以看到玩家可能输出的伤害范围非常的大，而且该分布有一个长尾：50%样本里玩家们的伤害是低于27点的。因此如果我们要依据该标准设定怪物的难度，怪物的血量应被设为27点。
 
