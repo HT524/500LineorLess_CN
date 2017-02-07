@@ -21,7 +21,7 @@
 |[An Archaeology-Inspired Database](http://aosabook.org/en/500L/pages/an-archaeology-inspired-database.html)|Yoav Rubin|Python 实现数据库|
 |[	A Python Interpreter Written in Python](http://aosabook.org/en/500L/pages/a-python-interpreter-written-in-python.html)|Allison Kaptur|[Python 解析器](https://linux.cn/article-7753-1.html)|
 |[A 3D Modeller](http://aosabook.org/en/500L/pages/a-3d-modeller.html)|Erick Dransch|3D建模|
-|[	A Simple Object Model](http://aosabook.org/en/500L/pages/a-simple-object-model.html)|Carl Friedrich Bolz|简易对象模型|
+|[	A Simple Object Model](http://aosabook.org/en/500L/pages/a-simple-object-model.html)|Carl Friedrich Bolz|简易对象模型(http://manjusaka.itscoder.com/2016/12/15/A-Simple-Object-Model/)|
 |[Optical Character Recognition (OCR)](http://aosabook.org/en/500L/pages/optical-character-recognition-ocr.html)|Marina Samuel|[光学文字识别](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%20Optical%20Character%20Recognition%20(OCR)%2F%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB.md)|
 |[A Pedometer in the Real World](http://aosabook.org/en/500L/pages/a-pedometer-in-the-real-world.html)|Dessy Daskalov|现实计步器|
 |[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|决策取样器|
@@ -44,7 +44,7 @@
 |An Archaeology-Inspired Database|待认领||
 |A Python Interpreter Written in Python|[qingyunha](https://github.com/qingyunha)|已完成|
 |A 3D Modeller|待认领||
-|A Simple Object Model|[skhe](https://github.com/skhe)|努力翻译中|
+|A Simple Object Model|[Manjusaka](http://manjusaka.itscoder.com/)|已完成|
 |Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|努力翻译中|
 |A Pedometer in the Real World|待认领||
 |A Rejection Sampler|待认领||
