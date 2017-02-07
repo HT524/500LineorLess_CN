@@ -24,7 +24,7 @@
 |[	A Simple Object Model](http://aosabook.org/en/500L/pages/a-simple-object-model.html)|Carl Friedrich Bolz|简易对象模型(http://manjusaka.itscoder.com/2016/12/15/A-Simple-Object-Model/)|
 |[Optical Character Recognition (OCR)](http://aosabook.org/en/500L/pages/optical-character-recognition-ocr.html)|Marina Samuel|[光学文字识别](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%20Optical%20Character%20Recognition%20(OCR)%2F%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB.md)|
 |[A Pedometer in the Real World](http://aosabook.org/en/500L/pages/a-pedometer-in-the-real-world.html)|Dessy Daskalov|现实计步器|
-|[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|决策取样器|
+|[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|[决策取样器](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler.md)|
 |[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)|Audrey Tang|Web 电子表格|
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|静态检查|
 |[A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板引擎](http://www.jianshu.com/p/b5d4aa45e771)|
@@ -38,7 +38,7 @@
 |A Continuous Integration System|  待认领  ||
 |Clustering by Consensus|待认领||
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|努力翻译中|
-|Dagoba: an in-memory graph database|待认领||
+|Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|努力翻译中|
 |DBDB: Dog Bed Database|待认领||
 |A Flow Shop Scheduler|待认领||
 |An Archaeology-Inspired Database|待认领||
@@ -47,7 +47,7 @@
 |A Simple Object Model|[Manjusaka](http://manjusaka.itscoder.com/)|已完成|
 |Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|努力翻译中|
 |A Pedometer in the Real World|待认领||
-|A Rejection Sampler|待认领||
+|A Rejection Sampler|[Hideki_Nakamoto](https://github.com/inamoto85)|已完成|
 |Web Spreadsheet|待认领||
 |Static Analysis|待认领||
 |A Template Engine|[treelake](http://www.jianshu.com/users/66f24f2c0f36/latest_articles)|已完成|
