@@ -45,7 +45,7 @@
 |A Python Interpreter Written in Python|[qingyunha](https://github.com/qingyunha)|已完成|
 |A 3D Modeller|待认领||
 |A Simple Object Model|[Manjusaka](http://manjusaka.itscoder.com/)|已完成|
-|Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|努力翻译中|
+|Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|已完成|
 |A Pedometer in the Real World|待认领||
 |A Rejection Sampler|[Hideki_Nakamoto](https://github.com/inamoto85)|已完成|
 |Web Spreadsheet|待认领||
