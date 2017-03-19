@@ -209,7 +209,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return page
 ```
 
-该程序的主体并没有改变：正如之前，它以地址和请求处理程序作为参数，创建了一个 `HTTPServer` 类的实例，然后一直处理请求。如果我们运行它，然后用浏览器发送一个请求给 `http://localhost:8000/something.html` ,我们将得到: 
+该程序的主体并没有改变：正如之前，它以地址和请求处理程序作为参数，创建了一个 `HTTPServer` 类的实例，然后一直处理请求。如果我们运行它，然后用浏览器发送一个请求给 `http://localhost:8000/something.html` ,我们将得到:
 
 ```
   Date and time  Mon, 24 Feb 2014 17:17:12 GMT
@@ -371,11 +371,6 @@ class case_directory_index_file(object):
              case_always_fail()]
 ```
 
-What about directories that don’t contain index.html pages?
-The test is the same as the one above
-with a not strategically inserted,
-but what about the act method?
-What should it do?
 要是目录不包含一个 `index.html` 页面呢？`test` 和之前的一个一致，可是，`act` 方法呢？它应该变成什么样？
 
 ```python
@@ -413,7 +408,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def list_dir(self, full_path):
         try:
             entries = os.listdir(full_path)
-            bullets = ['<li>{0}</li>'.format(e) 
+            bullets = ['<li>{0}</li>'.format(e)
                 for e in entries if not e.startswith('.')]
             page = self.Listing_Page.format('\n'.join(bullets))
             self.send_content(page)
