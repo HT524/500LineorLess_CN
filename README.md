@@ -12,7 +12,7 @@
 |英文标题|作者|中文标题|
 |:------|:------|:------|
 |[Blockcode: A visual programming toolkit](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Dethe Elza|[Blockcode:可视化编程工具](http://blog.csdn.net/code_for_fun/article/details/51898028)|
-|[A Continuous Integration System](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Malini Das|持续集成系统|
+|[A Continuous Integration System](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Malini Das|[持续集成系统](https://github.com/HT524/500LineorLess_CN/blob/master/%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E7%B3%BB%E7%BB%9F%20A%20Continuous%20Integration%20System/%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E7%B3%BB%E7%BB%9F.md)|
 |[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|分布式系统|
 |[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|高效爬虫与协程|
 |[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|Dagoba:内存中的图形数据库|
