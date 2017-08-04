@@ -25,7 +25,7 @@
 |[Optical Character Recognition (OCR)](http://aosabook.org/en/500L/pages/optical-character-recognition-ocr.html)|Marina Samuel|[光学文字识别](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%20Optical%20Character%20Recognition%20(OCR)%2F%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB.md)|
 |[A Pedometer in the Real World](http://aosabook.org/en/500L/pages/a-pedometer-in-the-real-world.html)|Dessy Daskalov|现实计步器|
 |[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|[决策取样器](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler.md)|
-|[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)[繁体中文]（https://github.com/aosabook/500lines/blob/master/spreadsheet/spreadsheet.zh-tw.markdown）|Audrey Tang|Web 电子表格|
+|[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)[繁体中文](https://github.com/aosabook/500lines/blob/master/spreadsheet/spreadsheet.zh-tw.markdown)|Audrey Tang|Web 电子表格|
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|静态检查|
 |[A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板引擎](http://www.jianshu.com/p/b5d4aa45e771)|
 |[	A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
