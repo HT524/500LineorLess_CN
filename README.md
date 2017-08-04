@@ -13,7 +13,7 @@
 |:------|:------|:------|
 |[Blockcode: A visual programming toolkit](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Dethe Elza|[Blockcode:可视化编程工具](http://blog.csdn.net/code_for_fun/article/details/51898028)|
 |[A Continuous Integration System](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Malini Das|[持续集成系统](https://github.com/HT524/500LineorLess_CN/blob/master/%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E7%B3%BB%E7%BB%9F%20A%20Continuous%20Integration%20System/%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E7%B3%BB%E7%BB%9F.md)|
-|[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|分布式系统|
+|[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|[分布式系统](https://github.com/HT524/500LineorLess_CN/blob/master/Clustering%20by%20Consensus/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F.md)|
 |[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|高效爬虫与协程|
 |[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|Dagoba:内存中的图形数据库|
 |[DBDB: Dog Bed Database](http://aosabook.org/en/500L/pages/dbdb-dog-bed-database.html)|Taavi Burns|DBDB:非关系型数据库|
@@ -36,7 +36,7 @@
 |:------|:------|:------|
 |Blockcode: A visual programming toolkit|[taozi_cao](http://my.csdn.net/cwt8805)|已完成|
 |A Continuous Integration System|[Alovez](https://github.com/Alovez)|努力翻译中|
-|Clustering by Consensus|待认领||
+|Clustering by Consensus|[escapecat](https://github.com/escapecat)|努力翻译中|
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|努力翻译中|
 |Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|努力翻译中|
 |DBDB: Dog Bed Database|待认领||
