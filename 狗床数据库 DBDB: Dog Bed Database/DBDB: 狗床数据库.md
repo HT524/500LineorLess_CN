@@ -34,19 +34,20 @@ DBDB 的特点是在电脑崩溃或程序出错的时候也能保证数据的安
 
 然后，就有了DBDB
 
-## Why Is it Interesting?
+## 为啥这个项目很有趣？
 
-Most projects require a database of some kind. You really shouldn't write your own; there are many edge cases that will bite you, even if you're just writing JSON to disk:
+很多项目都会使用到数据库。但是你没有自己去写一个，就算只是存储json文件在磁盘上，也会有各种各样的边缘情况(edge case)需要去考虑，比如说：
 
-- What happens if your filesystem runs out of space?
-- What happens if your laptop battery dies while saving?
-- What if your data size exceeds available memory? (Unlikely for most applications on modern desktop computers… but not unlikely for a mobile device or server-side web application.)
 
-However, if you want to understand how a database handles all of these problems, writing one for yourself can be a good idea.
+- 存储空间不足时会发生什么？
+- 电脑没电了，数据怎么保存？
+- 如果数据大小超过可用内存怎么办？ （台式机上的大多数应用程序基本不会出现这种情况，但移动设备或服务器端Web应用程序可能会发生）
 
-The techniques and concepts we discuss here should be applicable to any problem that needs to have rational, predictable behaviour when faced with failure.
+如果自己写一个数据库，你就知道数据库是怎么处理这些情况的了。
 
-Speaking of failure...
+我们在这里讨论的技术和概念应适用于应对各种情况（包括发生故障时）。
+
+关于发生故障。。。
 
 ## Characterizing Failure
 Databases are often characterized by how closely they adhere to the ACID properties: atomicity, consistency, isolation, and durability.
