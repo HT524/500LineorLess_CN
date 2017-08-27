@@ -6,33 +6,33 @@ As the newest bass (and sometimes tenor) in [Countermeasure](https://www.counter
 
 DBDB (狗床数据库) 是一个python实现的简单的键值对存储数据库(key/value database)。它把键与值相关联，并将该关联存储在磁盘上。
 
-DBDB 创建的目的是在电脑崩溃或程序出错的时候也能保证数据的安全。它也避免了把所有数据同时保存在内存中，所以你可以储存比内存容量更多的数据。
+DBDB 的特点是在电脑崩溃或程序出错的时候也能保证数据的安全。它也避免了把所有数据同时保存在内存中，所以你可以储存比内存容量更多的数据。
 
 ## 往事
 
-我记得有一次我在找一个BASIC程序里的bug的时候，电脑屏幕上突然出现了几个闪烁的光点，然后程序就提前终止了。当我再次检查代码的时候，代码的最后几行消失了。
+记得有一次我在找一个BASIC程序里的bug的时候，电脑屏幕上突然出现了几个闪烁的光点，然后程序就提前终止了。当我再次检查代码的时候，代码的最后几行消失了。
 
-One of my mom's friends knew how to program, so we set up a call. Within a few minutes of speaking with her, I found the problem: the program was too big, and had encroached onto video memory. Clearing the screen truncated the program, and the sparkles were artifacts of Applesoft BASIC's behaviour of storing program state in RAM just beyond the end of the program.
+我问了我麻麻的一个懂编程的朋友，然后我意识到程序崩溃的原因是程序太大了，占用到了电脑的显存。屏幕上闪烁的光点是苹果BASIC电脑的一个特性，这表示内存不够用了。
 
-From that moment onwards, I cared about memory allocation. I learned about pointers and how to allocate memory with malloc. I learned how my data structures were laid out in memory. And I learned to be very, very careful about how I changed them.
+从那一刻开始，我变得非常注意内存的使用。我学习了指针和malloc，我学习了数据是怎么存放进内存的。我会非常非常小心的使用内存
 
-Some years later, while reading about a process-oriented language called Erlang, I learned that it didn't actually have to copy data to send messages between processes, because everything was immutable. I then discovered immutable data structures in Clojure, and it really began to sink in.
+几年后，在学习一个面想过程的语言 Erlang 的时候，我懂得了进程间的通信不需要把数据再拷贝一份以供另一个进程使用，因为所有数据都是不可变的（immutable）。然后我就喜欢上了 Clojure 的那些不可变的数据结构。
 
-When I read about CouchDB in 2013, I just smiled and nodded, recognising the structures and mechanisms for managing complex data as it changes.
+当我在2013年看到CouchDB的时候，我认识到了管理复杂数据的结构和机制。
 
-I learned that you can design systems built around immutable data.
+我认识到了可以设计一个以不可变的(immutable)数据为基础的系统。
 
-Then I agreed to write a book chapter.
+我写了一了一些文章，
 
-I thought that describing the core data storage concepts of CouchDB (as I understood them) would be fun.
+因为我觉着描述 CouchDB (根据我的理解) 的核心数据储存原理会很有有意思。
 
-While trying to write a binary tree algorithm that mutated the tree in place, I got frustrated with how complicated things were getting. The number of edge cases and trying to reason about how changes in one part of the tree affected others was making my head hurt. I had no idea how I was going to explain all of this.
+当我写到一个二叉树自平衡的算法的时候，我才发现这个算法描述起来好复杂啊，边缘情况(edge case) 太多了，比如说解释二叉树的一处改变的时候，树的其他部分为什么也会改变。然后我就不知道怎么写了。
 
-Remembering lessons learned, I took a peek at a recursive algorithm for updating immutable binary trees and it turned out to be relatively straightforward.
+吸取了那次的经验教训，我仔细观察了递归算法来更新不可变二叉树，感觉这个算法更简单明了，和蔼可亲。
 
-I learned, once again, that it's easier to reason about things that don't change.
+所以我又双叒叕一次感受到了不可变的结构的好处。
 
-So starts the story.
+然后，就有了DBDB
 
 ## Why Is it Interesting?
 
