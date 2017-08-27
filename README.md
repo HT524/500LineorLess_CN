@@ -39,7 +39,7 @@
 |Clustering by Consensus|[escapecat](https://github.com/escapecat)|努力翻译中|
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|努力翻译中|
 |Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|努力翻译中|
-|DBDB: Dog Bed Database|待认领||
+|DBDB: Dog Bed Database|[JinXJinX](https://github.com/JinXJinX)|努力翻译中|
 |A Flow Shop Scheduler|待认领||
 |An Archaeology-Inspired Database|待认领||
 |A Python Interpreter Written in Python|[qingyunha](https://github.com/qingyunha)|已完成|
@@ -52,5 +52,3 @@
 |Static Analysis|待认领||
 |A Template Engine|[treelake](http://www.jianshu.com/users/66f24f2c0f36/latest_articles)|已完成|
 |A Simple Web Server|[skhe](https://github.com/skhe)|已完成|
-
-
