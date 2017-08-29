@@ -36,7 +36,7 @@ DBDB 的特点是在电脑崩溃或程序出错的时候也能保证数据的安
 
 ## 为啥这个项目很有趣？
 
-很多项目都会使用到数据库。但是你没有自己去写一个，就算只是存储json文件在磁盘上，也会有各种各样的边缘情况(edge case)需要去考虑，比如说：
+很多项目都会使用到数据库。但是你没有必要去自己写一个，就算只是存储json文件在磁盘上，也会有各种各样的边缘情况(edge case)需要去考虑，比如说：
 
 
 - 存储空间不足时会发生什么？
@@ -47,18 +47,19 @@ DBDB 的特点是在电脑崩溃或程序出错的时候也能保证数据的安
 
 我们在这里讨论的技术和概念应适用于应对各种情况（包括发生故障时）。
 
-关于发生故障。。。
+关于不足。。。
 
-## Characterizing Failure
-Databases are often characterized by how closely they adhere to the ACID properties: atomicity, consistency, isolation, and durability.
+## DBDB 的不足之处
 
-Updates in DBDB are atomic and durable, two attributes which are described later in the chapter. DBDB provides no consistency guarantees as there are no constraints on the data stored. Isolation is likewise not implemented.
+数据库为保证事务（transaction）是正确可靠的，所必须具备的四个特性(ACID属性)：原子性(atomicity)，一致性(consistency)，独立性(isolation)和持久性(durability)。
 
-Application code can, of course, impose its own consistency guarantees, but proper isolation requires a transaction manager. We won't attempt that here; however, you can learn more about transaction management in the [CircleDB chapter](http://aosabook.org/en/500L/an-archaeology-inspired-database.html).
+DBDB 的数据更新(Updates)方法具有原子性和持久性。这两个属性在后面的章节会做详细介绍。因为我们没有对储存的数据做限制，所以DBDB 不能保持数据的一致性。独立性在DBDB里也没有实现。
 
-We also have other system-maintenance problems to think about. Stale data is not reclaimed in this implementation, so repeated updates (even to the same key) will eventually consume all disk space. (You will shortly discover why this is the case.) [PostgreSQL](https://www.postgresql.org/) calls this reclamation "vacuuming" (which makes old row space available for re-use), and [CouchDB](http://couchdb.apache.org/) calls it "compaction" (by rewriting the "live" parts of the data into a new file, and atomically moving it over the old one).
+应用程序的代码当然可以保证自己的一致性，但是实现独立性需要一个事务管理器(transaction manager)。 我们不会在这里试图增加事务管理器的部分，但是你可以通过 [CircleDB chapter](http://aosabook.org/en/500L/an-archaeology-inspired-database.html) 来进一步了解事务管理器。
 
-DBDB could be enhanced to add a compaction feature, but it is left as an exercise for the reader[1].
+还有一些维护系统的问题需要考虑。 在DBDB中，陈旧数据(Stale data)不会被收回处理，因此更新(Updates)（甚至是使用相同的键值）将会导致终消耗掉所有的磁盘空间。 （你会很快发现为什么会这样）。[PostgreSQL]（https://www.postgresql.org/）把处理陈旧数据的过程称之为“吸尘器(vacuuming)”，这使得旧的行空间可以重新使用，[CouchDB] （http://couchdb.apache.org/）把处理陈旧数据的过程称之为“压缩”，通过把正常数据(live data)的部分重写入新文件，并替代旧的文件。
+
+DBDB 可以添加“压缩旧数据”的功能，这给就留给读者们作为小练习了【尾注1】。
 
 ## The Architecture of DBDB
 
