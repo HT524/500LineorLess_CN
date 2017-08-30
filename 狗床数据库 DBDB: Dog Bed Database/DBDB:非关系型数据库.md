@@ -1,10 +1,10 @@
-# DBDB: Dog Bed Database
+# 狗床数据库 DBDB: Dog Bed DataBase
 
 As the newest bass (and sometimes tenor) in [Countermeasure](https://www.countermeasuremusic.com/), Taavi strives to break the mould... sometimes just by ignoring its existence. This is certainly true through the diversity of workplaces in his career: IBM (doing C and Perl), FreshBooks (all the things), Points.com (doing Python), and now at PagerDuty (doing Scala). Aside from that—when not gliding along on his Brompton folding bike—you might find him playing Minecraft with his son or engaging in parkour (or rock climbing, or other adventures) with his wife. He knits continental.
 
 ## 简介
 
-DBDB (狗床数据库) 是一个python实现的简单的键值对存储数据库(key/value database)。它把键与值相关联，并将该关联存储在磁盘上。
+DBDB (狗床数据库) 是一个用Python实现的简单的键值对存储数据库(key/value database)。它把键与值相关联，并将该关联存储在磁盘上。
 
 DBDB 的特点是在电脑崩溃或程序出错的时候也能保证数据的安全。它也避免了把所有数据同时保存在内存中，所以你可以储存比内存容量更多的数据。
 
@@ -75,7 +75,7 @@ DBDB 把“将磁盘放在某处”（数据是怎么分布在文件中的;物�
 
 ## DBDB 包含的文件
 
-下列文件的排列顺序是从前端到后端，比如说，第一个文件就是与终端用户最常使用的。排在最后的文件就是终端用户最少会用到的。
+下列文件的排列顺序是从前端到后端，比如说，第一个文件就是离终端用户距离最近的。
 
 - `tool.py` 是一个在终端中执行的命令行工具
 
@@ -83,31 +83,31 @@ DBDB 把“将磁盘放在某处”（数据是怎么分布在文件中的;物�
 
 - `logical.py` 定义了逻辑层。是使用键/值存储的API(interface)。
 
-    - `LogicalBase` provides the API for logical updates (like get, set, and commit) and defers to a concrete subclass to implement the updates themselves. It also manages storage locking and dereferencing internal nodes.
+    - `LogicalBase` 提供了使用get, set, commit 的API，用了一个子类来完成具体的实现。它还用于管理存储的锁定，和取消引用内部节点。
 
-    - `ValueRef` is a Python object that refers to a binary blob stored in the database. The indirection lets us avoid loading the entire data store into memory all at once.
+    - `ValueRef` 是一个Python的对象，是存在数据库中的二进制大型对象 BLOB(basic large object). 它间接使我们能够避免将整个数据存储一次性加载到内存中。
 
-- `binary_tree.py` defines a concrete binary tree algorithm underneath the logical interface.
+- `binary_tree.py` 定义了逻辑接口下的二叉树算法。
 
-  - `BinaryTree` provides a concrete implementation of a binary tree, with methods for getting, inserting, and deleting key/value pairs. BinaryTree represents an immutable tree; updates are performed by returning a new tree which shares common structure with the old one.
+  - `BinaryTree` 提供二叉树的具体实现，包括get, insert, 和delete。BinaryTree 是一个 不变的(immutable) 的树，所以数据更新是产生一个新的树。
 
-  - `BinaryNode` implements a node in the binary tree.
+  - `BinaryNode` 实现了二叉树的节点的类
 
-  - `BinaryNodeRef` is a specialised `ValueRef` which knows how to serialise and deserialise a `BinaryNode`.
+  - `BinaryNodeRef` 是一个特殊实现的 `ValueRef`,用来实现 `BinaryNode` 的序列化和反序列化。
 
-- `physical.py` defines the physical layer. The `Storage` class provides persistent, (mostly) append-only record storage.
+- `physical.py` 定义了物理层，`Storage`类 提供了持久的，（大部分）只可添加的(append-only) 记录存储。
 
-These modules grew from attempting to give each class a single responsibility. In other words, each class should have only one reason to change.
+每个文件都只包含一个类，换句话说，“each class should have only one reason to change”。
 
-## Reading a Value
+## 读取数据
 
-We'll start with the simplest case: reading a value from the database. Let's see what happens when we try to get the value associated with key `foo` in `example.db`:
+一个简单的例子：从数据库里读取一个数据。一起来看看怎么从 `example.db` 数据库里获取 键为`foo` 的值吧。
 
 ```
 $ python -m dbdb.tool example.db get foo
 ```
 
-This runs the `main()` function from module `dbdb.tool`:
+这行代码运行了 `dbdb.tool` 中的 `main()` 函数。
 
 ```python
 # dbdb/tool.py
@@ -135,7 +135,8 @@ def main(argv):
     return OK
 ```
 
-The `connect()` function opens the database file (possibly creating it, but never overwriting it) and returns an instance of `DBDB`:
+函数 `connect()` 会打开一个数据库文件（或者是创建一个新的，但是永远不会覆盖其它的文件），然后返回一个名为`DBDB`的实例。
+
 ```python
 # dbdb/__init__.py
 def connect(dbname):
@@ -155,11 +156,12 @@ class DBDB(object):
         self._storage = Storage(f)
         self._tree = BinaryTree(self._storage)
 ```
-We see right away that `DBDB` has a reference to an instance of `Storage`, but it also shares that reference with `self._tree`. Why? Can't `self._tree` manage access to the storage by itself?
 
-The question of which objects "own" a resource is often an important one in a design, because it gives us hints about what changes might be unsafe. Let's keep that question in mind as we move on.
+从上面的代码中，我们可以看`DBDB`的实例中包含了一个对`Storage`实例的引用，它还把这个引用分享给了 `self._tree`。为什么要这样呢？`self._tree` 不可以自己管理对存储的访问吗？
 
-Once we have a DBDB instance, getting the value at `key` is done via a dictionary lookup (`db[key]`), which causes the Python interpreter to call `DBDB.__getitem__()`.
+哪个对象 “拥有” 一个资源的问题，在设计中通常是一个重要的问题，因为它影响到了程序的安全性。我们稍后会解释这个问题。
+
+当我们获得`DBDB`的实例后，获取一个键的值就会通过`dict`的查找功能完成(Python的解释器会调用`DBDB.__getitem__()`)。
 
 ```python
 # dbdb/interface.py
@@ -174,9 +176,9 @@ class DBDB(object):
             raise ValueError('Database closed.')
 ```
 
-`__getitem__()` ensures that the database is still open by calling `_assert_not_closed`. Aha! Here we see at least one reason why `DBDB` needs direct access to our `Storage` instance: so it can enforce preconditions. (Do you agree with this design? Can you think of a different way that we could do this?)
+`__getitem__()` 通过调用 `_assert_not_closed` 确保数据库仍处于打开状态。啊哈！这里我们看到了一个`DBDB`需要直接访问 `Storage`实例的原因：因此它可以强制执行前提条件。（你同意这个设计吗？你能想出一个不同的方式吗？）
 
-DBDB then retrieves the value associated with `key` on the internal `_tree` by calling `_tree.get()`, which is provided by `LogicalBase`:
+然后DBDB通过调用`_tree.get()`函数（由`LogicalBase`提供）来检索与`key`上的内部`_tree`相关联的值：
 
 ```python
 # dbdb/logical.py
@@ -188,7 +190,7 @@ class LogicalBase(object):
         return self._get(self._follow(self._tree_ref), key)
 ```
 
-`get()` checks if we have the storage locked. We're not 100% sure why there might be a lock here, but we can guess that it probably exists to allow writers to serialize access to the data. What happens if the storage isn't locked?
+`get()` 先检查了储存是否被锁。我们并不确定为什么在这里可能会有一个锁，但是我们可以猜到它可能存在允许作者将序列化访问数据。如果存储没有锁定会发生什么呢？
 
 ```python
 # dbdb/logical.py
@@ -199,11 +201,11 @@ def _refresh_tree_ref(self):
             address=self._storage.get_root_address())
 ```
 
-`_refresh_tree_ref` resets the tree's "view" of the data with what is currently on disk, allowing us to perform a completely up-to-date read.
+`_refresh_tree_ref` 将磁盘上数据树的“视图”重置了，这使我们能够读取最新的数据。
 
-What if storage is locked when we attempt a read? This means that some other process is probably changing the data we want to read right now; our read is not likely to be up-to-date with the current state of the data. This is generally known as a "dirty read". This pattern allows many readers to access data without ever worrying about blocking, at the expense of being slightly out-of-date.
+如果我们读取数据的时候，数据被锁了呢？这说明其他的进程或许正在更新这部分数据；我们读取的数据不太可能是最新的。 这通常被称为“脏读”(dirty read)。这种模式允许许多读者访问数据，而不用担心阻塞，相对的缺点就是数据可能不是最新的。
 
-For now, let's take a look at how we actually retrieve the data:
+现在，一起来看看是怎么具体拿取数据的。
 
 ```python
 # dbdb/binary_tree.py
@@ -220,19 +222,19 @@ class BinaryTree(LogicalBase):
         raise KeyError
 ```
 
-This is a standard binary tree search, following refs to their nodes. We know from reading the `BinaryTree` documentation that `Node`s and `NodeRef`s are value objects: they are immutable and their contents never change. `Node`s are created with an associated key and value, and left and right children. Those associations also never change. The content of the whole `BinaryTree` only visibly changes when the root node is replaced. This means that we don’t need to worry about the contents of our tree being changed while we are performing the search.
+这里用到了用到了二叉搜索。上文中介绍过了`Node` 和 `NodeRef` 是`BinaryTree`中的对象。他们是不可变的，所以他们的值不会改变。`Node`类包括键值和左右子项，这些不会改变。当更换根节点时，整个`BinaryTree`的内容才会明显变化。 这意味着在执行搜索时，我们不需要担心我们的树的内容被改变。
 
-Once the associated value is found, it is written to `stdout` by `main()` without adding any extra newlines, to preserve the user’s data exactly.
+当找到了相应的值后，`main()`函数会把这个值写入到`stdout`，输出的值中，并且不会包含换行符。
 
-## Inserting and Updating
+## 插入和更新
 
-Now we’ll set key `foo` to value `bar` in `example.db`:
+现在，我们在`example.db`数据库中，把`foo`键的值设为`bar`：
 
 ```
 $ python -m dbdb.tool example.db set foo bar
 ```
 
-Again, this runs the `main()` function from module `dbdb.tool`. Since we’ve seen this code before, we’ll just highlight the important parts:
+这段代码会运行`dbdb.tool`文件中的`main()`函数。这里，我们只介绍几个重要的地方。
 
 ``` python
 # dbdb/tool.py
@@ -249,7 +251,7 @@ def main(argv):
         ...
 ```
 
-This time we set the value with `db[key] = value` which calls `DBDB.__setitem__()`.
+给键赋值，我们使用了`db[key] = value`的方法来调用`DBDB.__setitem__()`
 
 ``` python
 # dbdb/interface.py
@@ -260,9 +262,9 @@ class DBDB(object):
         return self._tree.set(key, value)
 ```
 
-`__setitem__` ensures that the database is still open and then stores the association from `key` to `value` on the internal `_tree` by calling `_tree.set()`.
+`__setitem__` 确保了数据库的链接是打开的，然后调用`_tree.set()`来把键`key` 和值`value`存入`_tree`
 
-`_tree.set()` is provided by `LogicalBase`:
+`_tree.set()` 由 `LogicalBase` 提供:
 
 ``` python
 # dbdb/logical.py
@@ -275,7 +277,7 @@ class LogicalBase(object):
             self._follow(self._tree_ref), key, self.value_ref_class(value))
 ```
 
-`set()` first checks the storage lock:
+`set()` 先检查了数据有没有被锁定。
 
 ``` python
 # dbdb/storage.py
@@ -290,12 +292,13 @@ class Storage(object):
             return False
 ```
 
-There are two important things to note here:
+这里有两个重要的点需要注意：
 
--   Our lock is provided by a 3rd-party file-locking library called [portalocker](https://pypi.python.org/pypi/portalocker).
--   `lock()` returns `False` if the database was already locked, and `True` otherwise.
+- 我们使用了的第三方库提供的锁，名叫[portalocker](https://pypi.python.org/pypi/portalocker)。
+- 如果数据库被锁定了，`lock()`函数会返回`False`。否则，会返回`True`
 
 Returning to `_tree.set()`, we can now understand why it checked the return value of `lock()` in the first place: it lets us call `_refresh_tree_ref` for the most recent root node reference so we don’t lose updates that another process may have made since we last refreshed the tree from disk. Then it replaces the root tree node with a new tree containing the inserted (or updated) key/value.
+
 
 Inserting or updating the tree doesn’t mutate any nodes, because `_insert()` returns a new tree. The new tree shares unchanged parts with the previous tree to save on memory and execution time. It’s natural to implement this recursively:
 
