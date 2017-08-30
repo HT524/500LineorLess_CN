@@ -57,31 +57,31 @@ DBDB 的数据更新(Updates)方法具有原子性和持久性。这两个属性
 
 应用程序的代码当然可以保证自己的一致性，但是实现独立性需要一个事务管理器(transaction manager)。 我们不会在这里试图增加事务管理器的部分，但是你可以通过 [CircleDB chapter](http://aosabook.org/en/500L/an-archaeology-inspired-database.html) 来进一步了解事务管理器。
 
-还有一些维护系统的问题需要考虑。 在DBDB中，陈旧数据(Stale data)不会被收回处理，因此更新(Updates)（甚至是使用相同的键值）将会导致终消耗掉所有的磁盘空间。 （你会很快发现为什么会这样）。[PostgreSQL]（https://www.postgresql.org/）把处理陈旧数据的过程称之为“吸尘器(vacuuming)”，这使得旧的行空间可以重新使用，[CouchDB] （http://couchdb.apache.org/）把处理陈旧数据的过程称之为“压缩”，通过把正常数据(live data)的部分重写入新文件，并替代旧的文件。
+还有一些维护系统的问题需要考虑。 在DBDB中，陈旧数据(Stale data)不会被收回处理，因此更新(Updates)（甚至是使用相同的键）将会导致终消耗掉所有的磁盘空间。 （你会很快发现为什么会这样）。[PostgreSQL](https://www.postgresql.org/s) 把处理陈旧数据的过程称之为“吸尘器(vacuuming)”，这使得旧的行空间可以重新使用，[CouchDB](http://couchdb.apache.org/) 把处理陈旧数据的过程称之为“压缩”，通过把正常数据(live data)的部分重写入新文件，并替代旧的文件。
 
 DBDB 可以添加“压缩旧数据”的功能，这给就留给读者们作为小练习了【尾注1】。
 
-## The Architecture of DBDB
+## DBDB 的架构
 
-DBDB separates the concerns of "put this on disk somewhere" (how data are laid out in a file; the physical layer) from the logical structure of the data (a binary tree in this example; the logical layer) from the contents of the key/value store (the association of key `a` to value `foo`; the public API).
+DBDB 把“将磁盘放在某处”（数据是怎么分布在文件中的;物理层）与数据的逻辑结构（本例中为二叉树;逻辑层） 从键/值存储的内容中分离出来（比如：键`a`与值`foo`的关联;公共API）。
 
-Many databases separate the logical and physical aspects as it is is often useful to provide alternative implementations of each to get different performance characteristics, e.g. DB2's SMS (files in a filesystem) versus DMS (raw block device) tablespaces, or MySQL's [alternative engine implementations](https://dev.mysql.com/doc/refman/5.7/en/storage-engines.html).
+许多数据库为了提高效能，通常把逻辑层和物理层分开实现。 比如说，DB2的SMS（文件系统中的文件）和DMS（原始块设备）或MySQL的 [替代引擎](https://dev.mysql.com/doc/refman/5.7/en/storage-engines.html).
 
-## Discovering the Design
+## DBDB 的设计
 
-Most of the chapters in this book describe how a program was built from inception to completion. However, that is not how most of us interact with the code we're working on. We most often discover code that was written by others, and figure out how to modify or extend it to do something different.
+本文使用了大量篇幅介绍一个程序是怎么从无到有的写出来的。但是，这并不是大多数人参与、开发代码的方式。我们通常先是阅读别人写的代码，然后通过修改或者拓展这些代码来待到自己的需求。
 
-In this chapter, we'll assume that DBDB is a completed project, and walk through it to learn how it works. Let's explore the structure of the entire project first.
+所以，我们假设DBDB 是一个完整的项目，然后去了解它的流程和逻辑。让我们先从DBDB的结构开始吧。
 
-## Organisational Units
+## DBDB 包含的文件
 
-Units are ordered here by distance from the end user; that is, the first module is the one that a user of this program would likely need to know the most about, while the last is something they should have very little interaction with.
+下列文件的排列顺序是从前端到后端，比如说，第一个文件就是与终端用户最常使用的。排在最后的文件就是终端用户最少会用到的。
 
-- `tool.py` defines a command-line tool for exploring a database from a terminal window.
+- `tool.py` 是一个在终端中执行的命令行工具
 
-- `interface.py` defines a class (`DBDB`) which implements the Python dictionary API using the concrete `BinaryTree` implementation. This is how you'd use DBDB inside a Python program.
+- `interface.py` 定义了一个 `DBDB` 类，它使用`二叉树`(`BinaryTree`) 来实现了Python中的字典(`dict`)。
 
-- `logical.py` defines the logical layer. It's an abstract interface to a key/value store.
+- `logical.py` 定义了逻辑层。是使用键/值存储的API(interface)。
 
     - `LogicalBase` provides the API for logical updates (like get, set, and commit) and defers to a concrete subclass to implement the updates themselves. It also manages storage locking and dereferencing internal nodes.
 
