@@ -16,7 +16,7 @@
 |[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|[分布式系统](https://github.com/HT524/500LineorLess_CN/blob/master/Clustering%20by%20Consensus/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F.md)|
 |[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|高效爬虫与协程|
 |[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|Dagoba:内存中的图形数据库|
-|[DBDB: Dog Bed Database](http://aosabook.org/en/500L/pages/dbdb-dog-bed-database.html)|Taavi Burns|DBDB:非关系型数据库|
+|[DBDB: Dog Bed Database](http://aosabook.org/en/500L/pages/dbdb-dog-bed-database.html)|Taavi Burns|[DBDB:非关系型数据库](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%8B%97%E5%BA%8A%E6%95%B0%E6%8D%AE%E5%BA%93%20DBDB:%20Dog%20Bed%20Database/DBDB:%E9%9D%9E%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93.md)|
 |[A Flow Shop Scheduler](http://aosabook.org/en/500L/pages/a-flow-shop-scheduler.html)|Dr. Christian Muise|Flow Shop 调度问题|
 |[An Archaeology-Inspired Database](http://aosabook.org/en/500L/pages/an-archaeology-inspired-database.html)|Yoav Rubin|Python 实现数据库|
 |[	A Python Interpreter Written in Python](http://aosabook.org/en/500L/pages/a-python-interpreter-written-in-python.html)|Allison Kaptur|[Python 解析器](https://linux.cn/article-7753-1.html)|
