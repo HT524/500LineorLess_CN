@@ -1,4 +1,4 @@
-# 狗床数据库 DBDB: Dog Bed DataBase
+# DBDB: Dog Bed DataBase
 
 ## 作者简介
 Taavi Burns 是[Countermeasure](https://www.countermeasuremusic.com/) 乐团中最新的男低音(有时是男高音)。Taavi致力于打破常规。比如说他参加过的工作有，IBM(做C和Perl)，FreshBooks(做所有的东西)，Points.com(做Python)，现在在PagerDuty(做Scala)。 除此之外 - 当他没有在玩他的Brompton牌折叠式自行车时，你可能会发现他和他的儿子一起玩 我的世界(Minecraft)，或者和他的妻子一起参加跑酷(或攀岩或其他冒险)。 Taavi的爱好很广泛。
