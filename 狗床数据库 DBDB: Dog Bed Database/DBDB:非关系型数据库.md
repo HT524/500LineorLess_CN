@@ -1,6 +1,7 @@
 # 狗床数据库 DBDB: Dog Bed DataBase
 
-As the newest bass (and sometimes tenor) in [Countermeasure](https://www.countermeasuremusic.com/), Taavi strives to break the mould... sometimes just by ignoring its existence. This is certainly true through the diversity of workplaces in his career: IBM (doing C and Perl), FreshBooks (all the things), Points.com (doing Python), and now at PagerDuty (doing Scala). Aside from that—when not gliding along on his Brompton folding bike—you might find him playing Minecraft with his son or engaging in parkour (or rock climbing, or other adventures) with his wife. He knits continental.
+## 作者简介
+Taavi Burns 是[Countermeasure](https://www.countermeasuremusic.com/) 乐团中最新的男低音（有时是男高音）。Taavi致力于打破常规。比如说他参加过的工作有，IBM（做C和Perl），FreshBooks（做所有的东西），Points.com（做Python），现在在PagerDuty（做Scala）。 除此之外 - 当他的没有在玩他的Brompton牌折叠式自行车时，你可能会发现他和他的儿子一起玩 我的世界（Minecraft），或者和他的妻子一起参加跑酷（或攀岩或其他冒险）。 Taavi的爱好很广泛。
 
 ## 简介
 
@@ -297,10 +298,10 @@ class Storage(object):
 - 我们使用了的第三方库提供的锁，名叫[portalocker](https://pypi.python.org/pypi/portalocker)。
 - 如果数据库被锁定了，`lock()`函数会返回`False`。否则，会返回`True`
 
-Returning to `_tree.set()`, we can now understand why it checked the return value of `lock()` in the first place: it lets us call `_refresh_tree_ref` for the most recent root node reference so we don’t lose updates that another process may have made since we last refreshed the tree from disk. Then it replaces the root tree node with a new tree containing the inserted (or updated) key/value.
 
+回到`_tree.set()`，现在我们明白了为什么需要先检查数据的锁（`lock()`）了：它会调用`_refresh_tree_ref`函数来获取最新的根节点。然后它会用一个新的树（已经插入／更新过数据）来替代原有的树。
 
-Inserting or updating the tree doesn’t mutate any nodes, because `_insert()` returns a new tree. The new tree shares unchanged parts with the previous tree to save on memory and execution time. It’s natural to implement this recursively:
+插入和更新一个树，不会改变任何一个节点。因为`_insert()`会返回一个新的树。新树与老树会共享数据不变的部分以节省内存和执行时间。我们使用了递归来实现：
 
 ``` python
 # dbdb/binary_tree.py
@@ -325,15 +326,15 @@ class BinaryTree(LogicalBase):
         return self.node_ref_class(referent=new_node)
 ```
 
-Notice how we always return a new node (wrapped in a `NodeRef`). Instead of updating a node to point to a new subtree, we make a new node which shares the unchanged subtree. This is what makes this binary tree an immutable data structure.
+请注意我们总是返回一个新的节点（含在一个`NodeRef`中）。我们建一个新的节点，它会与旧的节点共享为改变的部分。而部分更新旧的节点上的数据。这使我们的二叉树变得 不可变（immutable）。
 
-You may have noticed something strange here: we haven’t made any changes to anything on disk yet. All we’ve done is manipulate our view of the on-disk data by moving tree nodes around.
+你可能意识到有有个奇怪的地方：我们还没对磁盘上的数据做任何处理呢。我们目前所做的只是通过移动树的节点来操纵我们对磁盘数据的视图。
 
-In order to actually write these changes to disk, we need an explicit call to `commit()`, which we saw as the second part of our `set` operation in `tool.py` at the beginning of this section.
+为了真正的把新的数据保存在硬盘上，我们需要一个调用`commit()`函数。我们在前面的讲`set`操作的章节见过这个函数。
 
-Committing involves writing out all of the dirty state in memory, and then saving the disk address of the tree’s new root node.
+`commit`会把所有的脏状态（dirty state）写入内存中的，然后保存下磁盘地址作为树的新根节点。
 
-Starting from the API:
+从commit的API开始看：
 
 ``` python
 # dbdb/interface.py
@@ -344,7 +345,7 @@ class DBDB(object):
         self._tree.commit()
 ```
 
-The implementation of `_tree.commit()` comes from `LogicalBase`:
+`_tree.commit()`是在`LogicalBase`里面实现的：
 
 ``` python
 # dbdb/logical.py
@@ -355,7 +356,7 @@ class LogicalBase(object)
         self._storage.commit_root_address(self._tree_ref.address)
 ```
 
-All `NodeRef`s know how to serialise themselves to disk by first asking their children to serialise via `prepare_to_store()`:
+`NodeRef`的序列化（serialise）是通过让它们的子节点使用`prepare_to_store()`完成序列化 而完成的。
 
 ``` python
 # dbdb/logical.py
@@ -367,7 +368,7 @@ class ValueRef(object):
             self._address = storage.write(self.referent_to_string(self._referent))
 ```
 
-`self._tree_ref` in `LogicalBase` is actually a `BinaryNodeRef` (a subclass of `ValueRef`) in this case, so the concrete implementation of `prepare_to_store()` is:
+这里的`LogicalBase`里面的`self._tree_ref`其实使用了`BinaryNodeRef`（`ValueRef`的子类）。所以`prepare_to_store()`的具体实现方式为：
 
 ``` python
 # dbdb/binary_tree.py
@@ -389,9 +390,9 @@ class BinaryNode(object):
         self.right_ref.store(storage)
 ```
 
-This recurses all the way down for any `NodeRef` which has unwritten changes (i.e., no `_address`).
+这个递归会在任何`NodeRef`有未写入的变化（比如说缺少`_address`）的时候一直循环下去。
 
-Now we’re back up the stack in `ValueRef`’s `store` method again. The last step of `store()` is to serialise this node and save its storage address:
+现在让我们来回忆一下`ValueRef`里的`store`方法。`store()`里的最后一步是序列化这个节点，然后保存它的存储地址：
 
 ``` python
 # dbdb/logical.py
@@ -403,7 +404,7 @@ class ValueRef(object):
             self._address = storage.write(self.referent_to_string(self._referent))
 ```
 
-At this point the `NodeRef`’s `_referent` is guaranteed to have addresses available for all of its own refs, so we serialise it by creating a bytestring representing this node:
+这里，`NodeRef`的 `_referent`保证会有引用的地址，所以我们通过创建这个节点的字节串（bytestring）来序列化它：
 
 ``` python
 # dbdb/binary_tree.py
@@ -420,9 +421,9 @@ class BinaryNodeRef(ValueRef):
         })
 ```
 
-Updating the address in the `store()` method is technically a mutation of the `ValueRef`. Because it has no effect on the user-visible value, we can consider it to be immutable.
+在`store()`中更新地址在实际上是改变`ValueRef`。 因为它对用户可见的值没有任何影响，所以我们可以认为它是不可变的。
 
-Once `store()` on the root `_tree_ref` is complete (in `LogicalBase.commit()`), we know that all of the data are written to disk. We can now commit the root address by calling:
+根节点`_tree_ref`在`store()`之后（在`LogicalBase.commit()`中），所有的数据就已经保存在磁盘上了。现在我们可以调用根地址的提交（commit）了：
 
 ``` python
 # dbdb/physical.py
@@ -437,19 +438,19 @@ class Storage(object):
         self.unlock()
 ```
 
-We ensure that the file handle is flushed (so that the OS knows we want all the data saved to stable storage like an SSD) and write out the address of the root node. We know this last write is atomic because we store the disk address on a sector boundary. It’s the very first thing in the file, so this is true regardless of sector size, and single-sector disk writes are guaranteed to be atomic by the disk hardware.
+我们确保句柄（file handle）已被刷新（所以系统就知道了我们想要所有数据都被保存起来，比如：SSD）以及返回了根节点的地址。我们知道最后一次写入是具有原子性（atomic）的，因为我们将磁盘地址存储在扇区边界上（sector boundary）。这是文件中的最靠前的，所以无论扇区大小如何，这都是正确的，单扇区磁盘写入能由磁盘硬件保证原子性。
 
-Because the root node address has either the old or new value (never a bit of old and a bit of new), other processes can read from the database without getting a lock. An external process might see the old or the new tree, but never a mix of the two. In this way, commits are atomic.
+因为根节点地址要么是旧值要么是新值（没有中间值），所以其他进程可以从数据库中读取而不用锁定。 外部进程可能会获取到旧的或新的数据。所以，提交（commit）是原子性的。
 
-Because we write the new data to disk and call the `fsync` syscall[2] before we write the root node address, uncommitted data are unreachable. Conversely, once the root node address has been updated, we know that all the data it references are also on disk. In this way, commits are also durable.
+因为我们在赋予根节点地址之前，会把新的数据写入磁盘并调用`fsync` syscall [尾注2]，所以未提交的数据是无法访问的。 相反，一旦根节点地址被更新，我们知道它引用的所有数据也在磁盘上。以这种方式，提交（commit）也具有持久性(durability)。
 
-We’re done!
+就是这样！
 
-## How NodeRefs Save Memory
+## NodeRefs 是怎么节省空间的
 
-To avoid keeping the entire tree structure in memory at the same time, when a logical node is read in from disk the disk address of its left and right children (as well as its value) are loaded into memory. Accessing children and their values requires one extra function call to `NodeRef.get()` to dereference (“really get”) the data.
+为了避免把这个树的数据同时保存在内存中，当从磁盘读取逻辑节点时，其左和右子节点的磁盘地址（还有值）将被加载到内存中。所以访问子节点需要调用一个额外的函数`NodeRef.get()`来获取真正的数据。
 
-All we need to construct a `NodeRef` is an address:
+`NodeRef` 只需包含一个地址：
 
     +---------+
     | NodeRef |
@@ -458,7 +459,7 @@ All we need to construct a `NodeRef` is an address:
     | get()   |
     +---------+
 
-Calling `get()` on it will return the concrete node, along with that node’s references as `NodeRef`s:
+当点用 `get()`后，`NodeRef` 会返回具体的节点，并包括其两个子节点的`NodeRef`类。
 
     +---------+     +---------+     +---------+
     | NodeRef |     | Node    |     | NodeRef |
@@ -472,30 +473,30 @@ Calling `get()` on it will return the concrete node, along with that node’s re
                                     | addr=2  |
                                     +---------+
 
-When changes to the tree are not committed, they exist in memory with references from the root down to the changed leaves. The changes aren’t saved to disk yet, so the changed nodes contain concrete keys and values and no disk addresses. The process doing the writing can see uncommitted changes and can make more changes before issuing a commit, because `NodeRef.get()` will return the uncommitted value if it has one; there is no difference between committed and uncommitted data when accessed through the API. All the updates will appear atomically to other readers because changes aren’t visible until the new root node address is written to disk. Concurrent updates are blocked by a lockfile on disk. The lock is acquired on first update, and released after commit.
+当树的更改未提交时，它们保存在内存中，包括从根（root）向下到更改的叶（leaves）。 当更改还没保存到磁盘时，所以被更改的节点包含具体的键和值，但是没有磁盘地址。 处理写入的进程可以看到这些未提交的更改，并且可以在发出提交之前再次对其进行更改，这是因为`NodeRef.get()`有值的话，会返回一个未提交的值; 在通过API访问时，提交和未提交的数据之间没有区别。其他读者可以看到最新的数据，因为新的更改在根节点的地址被写入磁盘前，是看不到的。并发的更新操作会被磁盘上的文件锁阻止。文件会在第一次更新时上锁，并在提交后解锁。
 
-## Exercises for the Reader
+## 留给读者的小练习
 
-DBDB allows many processes to read the same database at once without blocking; the tradeoff is that readers can sometimes retrieve stale data. What if we needed to be able to read some data consistently? A common use case is reading a value and then updating it based on that value. How would you write a method on `DBDB` to do this? What tradeoffs would you have to incur to provide this functionality?
+DBDB 允许多进程同时访问同一个数据库。为做到这一点，我们付出的是，读取有时获得的是陈旧的数据。如果我们需要总是读取最新的数据该怎么办？ 一个常见的用例是读取值，然后根据该值进行更新。 你如何在“DBDB”上实现这个方法呢？你需要做什么权衡来做到这个功能呢？
 
-The algorithm used to update the data store can be completely changed out by replacing the string `BinaryTree` in `interface.py`. Data stores tend to use more complex types of search trees such as B-trees, B+ trees, and others to improve the performance. While a balanced binary tree (and this one isn’t) needs to do O(log2(n)) random node reads to find a value, a B+ tree needs many fewer, for example O(log{32}(n)) because each node splits 32 ways instead of just 2. This makes a huge different in practice, since looking through 4 billion entries would go from log2(2^{32}) = 32 to log{32}(2^{32}) approx 6.4 lookups. Each lookup is a random access, which is incredibly expensive for hard disks with spinning platters. SSDs help with the latency, but the savings in I/O still stand.
+更新数据存储的算法可以通过改变`interface.py`文件中的这个词`BinaryTree`来使用别的算法。 比如说可以用 B-trees, B+ trees 或其他的结构来提高数据库的效能。一个平衡的二叉树需要做O(log2(n))次节点的读取，来查找值。而B+树只需要更少的次数，比如O(log32(n))次，永伟每个节点有32个子节点（而不是2个）。这会很大的提高练习的难度。比如40亿条数据中查找一条信息，这需要大约 log2（2 ^ {32}）= 32 至 log32（2 ^ {32}）=6.4次查找。每个查找都是随机访问，因为开销非常大，所以这是难以做到的。SSD或许可以用延迟解决，但I/O的节省仍然存在。
 
-By default, values are stored by `ValueRef` which expects bytes as values (to be passed directly to `Storage`). The binary tree nodes themselves are just a sublcass of `ValueRef`. Storing richer data via [json](http://json.org) or [msgpack](http://msgpack.org) is a matter of writing your own and setting it as the `value_ref_class`. `BinaryNodeRef` is an example of using [pickle](https://docs.python.org/3.4/library/pickle.html) to serialise data.
+默认情况下，值以字节的形式（为了能直接传入到`Storage`）存储在`ValueRef`里。二叉树的节点是`ValueRef`的子类。通过[json](http://json.org) 或者 [msgpack](http://msgpack.org) 格式保存更丰富的数据则需要编写自己的文件并将其设置为“value_ref_class”。`BinaryNodeRef` 就是一个使用 [pickle](https://docs.python.org/3.4/library/pickle.html) 来序列化数据的例子。
 
-Database compaction is another interesting exercise. Compacting can be done via an infix-of-median traversal of the tree writing things out as you go. It’s probably best if the tree nodes all go together, since they’re what’s traversed to find any piece of data. Packing as many intermediate nodes as possible into a disk sector should improve read performance, at least right after compaction. There are some subtleties here (for example, memory usage) if you try to implement this yourself. And remember: always benchmark performance enhancements before and after! You’ll often be surprised by the results.
+压缩数据库是另一个有趣的练习。 压缩可以随着树的移动通过中间遍历(infix-of-median traversal)完成。如果树节点全部在一起可能是最好的，因为它们是遍历以查找任何数据的。将尽可能多的中间节点打包进到磁盘扇区中可以提高读取性能，至少是在压缩之后，可以提高读取效率。 这里有一些细节需要注意（例如，内存使用），如果你打算完成这个练习。 请记住：在修改前后，总是注意记录性能的改变！你经常会对结果感到惊讶。
 
-## Patterns and Principles
+## 模式与原则
 
-Test interfaces, not implementation. As part of developing DBDB, I wrote a number of tests that described how I wanted to be able to use it. The first tests ran against an in-memory version of the database, then I extended DBDB to persist to disk, and even later added the concept of NodeRefs. Most of the tests didn’t have to change, which gave me confidence that things were still working.
+有些没有实现的测试接口。作为开发DBDB的一部分，我写了一些描述我想要使用DBDB的测试。第一个测试针对数据库的内存版本进行，然后我将DBDB的存储方式扩展到了磁盘，甚至后来添加了NodeRefs的概念。而且大多数测试并不需要改变，这让我对开发DBDB更加有信心。
 
-Respect the Single Responsibility Principle. Classes should have at most one reason to change. That’s not strictly the case with DBDB, but there are multiple avenues of extension with only localised changes required. Refactoring as I added features was a pleasure!
+遵守单一责任原则（Single Responsibility Principle）。类最多只能有一个改变的原因。这不是严格按照DBDB的情况，但也多种拓展途径与只需要局部的变化。Refactoring as I added features was a pleasure!
 
-## Summary
+## 总结
 
-DBDB is a simple database that makes simple guarantees, and yet things still became complicated in a hurry. The most important thing I did to manage this complexity was to implement an ostensibly mutable object with an immutable data structure. I encourage you to consider this technique the next time you find yourself in the middle of a tricky problem that seems to have more edge cases than you can keep track of.
+DBDB 是一个实现了简单功能的数据库，但是它也可以变的很复杂。我为了管理它的复杂性，做的最重要的事情就是用不可变数据结构实现一个表面上可变的对象（implement an ostensibly mutable object with an immutable data structure.）。 我鼓励你以后遇到某些棘手问题（非常多的边际情况）的时候，考虑使用这种方法。
 
 ------------------------------------------------------------------------
 
-1. Bonus feature: Can you guarantee that the compacted tree structure is balanced? This helps maintain performance over time.
+1. 额外的功能：您能保证压实的树结构是平衡的吗？ 这有助于保持性能。
 
-2. Calling `fsync` on a file descriptor asks the operating system and hard drive (or SSD) to write all buffered data immediately. Operating systems and drives don’t usually write everything immediately in order to improve performance.
+2. 在文件描述符(file descriptor)上调用`fsync`请求会让操作系统和硬盘驱动器（或SSD）立即写入所有缓冲的数据。操作系统和驱动器通常为保证性能，不会立即写入所有内容。
