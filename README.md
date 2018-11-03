@@ -30,6 +30,16 @@
 |[A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板引擎](http://www.jianshu.com/p/b5d4aa45e771)|
 |[	A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
 
+## 术语库
+
+[术语库](https://github.com/HT524/500LineorLess_CN/tree/master/%E6%9C%AF%E8%AF%AD%E5%BA%93)
+
+> 术语库 是从[電腦名詞譯名](http://www.iicm.org.tw/term/)(`iicm_1.csv` ~ `iicm_6.csv`)和[English to Chinese translation glossaries](https://www.proz.com/glossary-translations/english-to-chinese-glossaries)抓取的。
+
+可以直接导入[Google Translate Toolkit](https://translate.google.com/toolkit/)
+
+抓取脚本在[placehoder]().
+
 ## 认领表
 
 |标题|译者|进度|
@@ -52,14 +62,3 @@
 |Static Analysis|待认领||
 |A Template Engine|[treelake](http://www.jianshu.com/users/66f24f2c0f36/latest_articles)|已完成|
 |A Simple Web Server|[skhe](https://github.com/skhe)|已完成|
-
-
-## 术语库
-
-[术语库]()
-
-> 术语库是从[電腦名詞譯名](http://www.iicm.org.tw/term/)(`iicm_1.csv` ~ `iicm_6.csv`)和[English to Chinese translation glossaries](https://www.proz.com/glossary-translations/english-to-chinese-glossaries)抓取的。
-
-可以直接导入[Google Translate Toolkit](https://translate.google.com/toolkit/)
-
-抓取脚本在[placehoder]().
