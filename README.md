@@ -35,7 +35,7 @@
 |标题|译者|进度|
 |:------|:------|:------|
 |Blockcode: A visual programming toolkit|[taozi_cao](http://my.csdn.net/cwt8805)|已完成|
-|A Continuous Integration System|[Alovez](https://github.com/Alovez)|翻译中|
+|A Continuous Integration System|[Alovez](https://github.com/Alovez)|已完成|
 |Clustering by Consensus|[escapecat](https://github.com/escapecat)|翻译中|
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|翻译中|
 |Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|翻译中|
@@ -52,3 +52,14 @@
 |Static Analysis|待认领||
 |A Template Engine|[treelake](http://www.jianshu.com/users/66f24f2c0f36/latest_articles)|已完成|
 |A Simple Web Server|[skhe](https://github.com/skhe)|已完成|
+
+
+## 术语库
+
+[术语库]()
+
+> 术语库是从[電腦名詞譯名](http://www.iicm.org.tw/term/)(`iicm_1.csv` ~ `iicm_6.csv`)和[English to Chinese translation glossaries](https://www.proz.com/glossary-translations/english-to-chinese-glossaries)抓取的。
+
+可以直接导入[Google Translate Toolkit](https://translate.google.com/toolkit/)
+
+抓取脚本在[placehoder]().
