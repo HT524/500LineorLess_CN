@@ -1,0 +1,908 @@
+标题：静态分析
+作者：Leah Hanson
+<markdown>
+_Leah Hanson是令Hacker School感到自豪的校友，而且喜欢帮助人们了解Julia语言。她的博客：[http://blog.leahhanson.us/上](http://blog.leahhanson.us/)，以及推特：[\@astrieanna](https://twitter.com/astrieanna)。_
+</markdown>
+
+## 介绍
+
+你可能对一些精致的IDE感到熟悉，它们会将你无法编译的部分代码划上红色下划线。你可能在你的代码上运行了一个代码检查工具来检查格式或样式问题。你可能在打开了所有警告，在超级挑剔的模式下运行着编译器。所有这些工具都应用了静态分析。
+
+静态分析是一种在不运行代码的情况下检查其中问题的方法。 “静态”的意思是在编译时而非运行时，“分析”则意味着我们正在分析代码。当你使用我上面提到的工具时，它可能感觉像是魔术。但这些工具只是程序——它们是由一个人（像你这样的程序员）编写的源代码构成的。在这个章节中，我们将讨论如何实现一些静态分析检查。为了做到这一点，我们需要知道我们希望通过检查实现什么，以及我们要怎样完成检查。
+
+通过将所有流程分三个阶段陈述，我们可以更加具体地了解你需要了解的内容：
+
+#### 1. 决定你要检查的内容。
+
+你要能用让该编程语言的用户能够识别的方式，解释你想要解决的一般问题。例子包括：
+
+- 找出拼写错误的变量名称
+- 找出在并行代码中存在的竞争
+- 找出对未实现的函数的调用
+
+#### 2. 决定具体如何去检查。
+
+虽然我们可以要求一个朋友完成上面列出的任务之一，但他们仍无法向计算机解释得足够清楚。例如，要解决“找出拼写错误的变量名称”这个问题时，我们需要定义“拼写错误”在此处的含义。一种办法是提倡变量名应该由字典中的英文单词组成；另一个办法是查找仅使用过一次的变量（就是你输错的那一次）。
+
+如果我们知道我们正在寻找仅使用过一次的变量，我们可以讨论各种变量用法（将其值分配或读取）以及哪些代码会、或不会触发警告。
+
+#### 3. 实施细节。
+
+这包括真正去编写代码的行为，阅读你所使用的库的文档所花费的时间，以及弄清楚如何获取你所需的信息来编写分析。这可能涉及读取代码文件，解析代码以理解结构，然后对该结构进行特定的检查。
+
+对于本章中实施的每项检查，我们将逐项完成这些步骤。第1步需要充分了解我们正在分析的语言，以理解其用户所面临的问题。本章将全部使用Julia代码编写，同时也用来分析Julia代码。
+
+## Julia语言简介
+
+Julia是一门针对技术计算的年轻语言。它于2012年春季发布于0.1版；截至2015年初，它的版本号已经升到了0.3。一般来说，Julia看起来很像Python，但多了一些可选的类型注释，且完全没有任何面向对象的东西。大多数程序员会对Julia的多次调度特性感到新奇，这对API设计和语言中的其他设计选择都有着普遍的影响。
+
+这是Julia代码的片段：
+
+```julia
+# 关于increment的一段注释
+function increment(x::Int64)
+  return x + 1
+end
+
+increment(5)
+```
+
+这段代码定义了`increment`函数的一个方法，该方法接受一个名为`x`、类型为`Int64`的参数。该方法返回`x + 1`的值。接着，使用参数`5`去调用这个刚刚定义的方法；正如你可能已经猜到的那样，这次函数调用求得了`6` 。
+
+`Int64`是在内存中以64位表示的带符号的整数类型；如果你的计算机具有64位处理器，那么它们是你的硬件能够理解的整数。除了影响方法调度之外，Julia中的类型定义了数据在内存中表示形式。
+
+名称`increment`指的是一个一般函数，这个函数可能有许多方法。我们刚刚为它定义了一种方法。在许多语言中，术语“函数”和“方法”可互换指代；但在Julia里，他们有不同的含义。如果你细心地将“函数”理解为一个众多方法的命名集合，其中“方法”是特定类型签名的特定实现，那么本章将更好理解。
+
+让我们定义`increment`函数的另一个方法：
+
+```julia
+# 使x增加y
+function increment(x::Int64, y::Number)
+  return x + y
+end
+
+increment(5) # =\> 6
+increment(5,4) # =\> 9
+```
+
+现在函数`increment`有了两种方法。Julia根据参数的数量和类型决定为指定的调用运行哪个方法；这称为_动态多次调度_ ：
+
+- **动态，**是指它基于运行时使用的值的类型。
+- **多次，**是指它查看所有参数的类型和顺序。
+- **调度**，是指这是一种将函数调用和方法定义匹配起来的办法。
+
+用你可能已经了解的语言环境来举例，面向对象语言使用单次调度，因为它们只考虑第一个参数。（在`x.foo(y)`中 ，第一个参数是`x` 。）
+
+单次和多次调度都基于参数的类型。上面的`x::Int64`是一个纯粹用于调度的类型注释。在Julia的动态类型系统中，你可以在函数中为`x`分配任何类型的值而不会出错。
+
+我们还没有真正看到“多次”的部分，但如果你对Julia很好奇，你就必须得自己查查看了。我们要继续我们的第一个检查了。
+
+## 检查循环中的变量类型
+
+与大多数编程语言一样，在Julia中编写非常快速的代码需要了解计算机和Julia的工作原理。帮助编译器为你创建快速代码的一个重要部分是编写类型稳定的代码；这在Julia和JavaScript中很重要，在其他JIT的语言中也很有用。相对于编译器认为某个变量存在多种可能的类型（无论正确与否）的情况，当编译器明白代码段中的某个变量将始终包含相同的特定类型时，编译器可以完成更多优化工作。有关为什么类型稳定性（也称为“单态”）对于JavaScript重要的原因，你可以 [在线](http://mrale.ph/blog/2015/01/11/whats-up-with-monomorphism.html)阅读，了解更多。
+
+### 为什么这很重要
+
+让我们编写一个函数，它接受`Int64`并将其增大一些。如果数字比较小（小于10），我们将它加上一个大数字（50），但如果数字很大，那么我们只增加0.5。
+
+```julia
+function increment(x::Int64)
+  if x < 10
+    x = x + 50
+  else
+    x = x + 0.5
+  end
+  return x
+end
+```
+
+这个函数看起来非常简单，但`x`的类型是不稳定的。我选择了两个数字：一个`Int64` 类型：50，和一个`Float64` 类型：0.5。取决于`x`的值，它可能会和两者中的任何一个相加。如果你将例如22的`Int64`和例如0.5这样的`Float64`相加 ，你会得到一个`Float64`类型数据（22.5）。因为函数(`x` )的变量类型会根据传给函数(`x` )的参数变化，`increment`的这一方法，尤其是变量`x`，是类型不稳定的。
+
+`Float64`是一种表示以64位存储的浮点值的类型;在C语言中，它被称为双精度浮点型（`double`） 。这是64位处理器理解的浮点类型之一。
+
+与大多数效率问题一样，这个问题在循环中发生时将更加明显。for和while循环中的代码会运行很多、很多次，所以让循环快速运行，要比让仅运行一两次的代码加快速度更加重要。因此，我们的第一个检查是查找循环中具有不稳定类型的变量。
+
+首先，让我们看一下我们想要捕捉的例子。我们将查看两个函数。两个函数都从1加到100，但是它们不是对整数进行求和，而是在求和之前先将每个数除以2。两个函数都会得到相同的答案（2525.0）；两者都将返回相同的类型（ `Float64` ）。然而，第一个函数：`unstable` ，受到类型不稳定的影响，而第二个函数： `stable` ，则不会。
+
+```julia
+function unstable()
+  sum = 0
+  for i=1:100
+    sum += i/2
+  end
+  return sum
+end
+
+function stable()
+  sum = 0.0
+  for i=1:100
+    sum += i/2
+  end
+  return sum
+end
+```
+
+两个函数之间唯一字面上的差异在于`sum`的初始化： `sum = 0`和`sum = 0.0` 。在Julia中，从字面上来说， `0`是`Int64`类型， 而`0.0`则是`Float64`类型。这个微小的变化能造成多大差别？
+
+由于Julia是实时（JIT）编译的，因此第一次运行函数所需的时间比该函数后续运行的时间长。（第一次运行包括为这些参数类型编译函数所花费的时间。）当我们对函数进行基准测试时，我们必须确保在对它们进行计时之前先运行它们一次（或者把它们预编译好）。
+
+```julia
+julia> unstable()
+2525.0
+
+julia> stable()
+2525.0
+
+julia> @time unstable()
+elapsed time: 9.517e-6 seconds (3248 bytes allocated)
+2525.0
+
+julia> @time stable()
+elapsed time: 2.285e-6 seconds (64 bytes allocated)
+2525.0
+```
+
+`@time`宏打印出函数运行的时间以及运行时分配的字节数。每次需要新内存时，分配的字节数就会增加；即便垃圾回收机制清理不再使用的内存时，它也不会减少。也就是说，分配的字节数与我们分配和管理内存所花费的时间有关，并不表示我们在同一时刻使用了所有这些内存。
+
+如果我们想要获得关于`stable`与`unstable`更有力的对比数据，我们需要更长的循环或更多次地运行函数。然而，看起来`unstable`可能更慢。更有趣的是，我们可以发现分配的字节数有很大差距;。`unstable`分配了大约3 KB的内存，而`stable`仅使用64字节。
+
+既然我们明白`unstable`是多么简单，我们会去猜想这种分配是在循环中发生的。为了测试这一点，我们可以使循环更长，并查看分配是否相应地增加。把循环改成从1到10000，是原先迭代次数的100倍。我们所期望看到的是分配的字节数也增加约100倍，达到约300 KB。
+
+```julia
+function unstable()
+  sum = 0
+  for i=1:10000
+    sum += i/2
+  end
+  return sum
+end
+```
+
+由于我们重新定义了函数，因此我们需要运行它，使其在测量之前完成编译。我们期望从新的函数定义中得到一个不同的、更大的答案，因为它现在对更多的数字进行了求和运算。
+
+```julia
+julia> unstable()
+2.50025e7
+
+julia>@time unstable()
+elapsed time: 0.000667613 seconds (320048 bytes allocated)
+2.50025e7
+```
+
+新的`unstable`分配了大约320 KB内存，这符合我们对于“内存分配在循环中发生”这一期望。为了解释这里发生了什么，我们将看看Julia在幕后是如何工作的。
+
+`unstable`和`stable`之间的差异是因为`unstable`的`sum`必须进行装箱转换，而`stable`中的`sum`可以不必如此。装箱值由类型标签和表示该值的实际比特位组成；而拆箱值只含有实际比特位。但是类型标签很小，所以这不是装箱值分配更多内存的原因。
+
+真正的差异来自编译器可以进行的优化。当变量具有具体的、不可变类型时，编译器可以在函数内将它拆箱。如果不是这种情况，则必须在堆上分配变量，并参与垃圾回收。不可变类型是Julia特有的概念。不可变类型的值无法更改。
+
+不可变类型通常是表示值的类型，而不是值的集合。例如，大多数数字类型（包括`Int64`和`Float64` ）都是不可变的。（Julia中的数字类型是普通类型，而不是特殊的原始类型。你可以定义一个与Julia所提供的类型相同的新的`MyInt64` 。）由于无法修改不可变类型，因此每次当你想要更改时都必须创建一个新的副本。例如， `4 + 6`必须创建一个新的`Int64`来保存结果。反之，可变类型的成员可以就地（in-place）更新。这意味着你不必在修改过程中做一次完整的复制。
+
+用`x = x + 2`来分配内存的想法可能听起来很奇怪。为什么你要使`Int64`值不可变，从而导致这样的基本操作变慢？这就是那些编译器优化的用武之地：使用不可变类型（通常）不会使它变慢。如果`x`具有稳定的具体类型（例如`Int64` ），则编译器可以自由地在堆栈上分配`x`，并就地变换`x` 。问题是当`x`具有不稳定类型时（因此编译器对它的大小或类型一无所知），一旦`x`被装箱并且在堆上，编译器就不能完全确定有没有其他代码使用该值，因此无法编辑它。
+
+因为`stable`中的`sum`有具体类型（ `Float64` ），编译器知道它可以在函数本地拆箱存储它并改变其值。这里的`sum`不会被分配到堆上，并且每次添加`i/2`时都不需要创建新副本。
+
+因为`unstable`中的`sum`没有具体类型，所以编译器会在堆上分配它。每次我们修改sum时，我们在堆上都分配了一个新值。所有这些在堆上分配值（以及每次我们想要读取`sum`的值时进行的检索）所花费的时间都是宝贵的。
+
+使用`0`而不是`0.0`是一个容易犯的错误，尤其是当你刚接触Julia时。自动检查循环中使用的变量是否是类型稳定的，有助于程序员更深入理解他们的代码性能关键（performance-critical）部分中的变量类型。
+
+### 实施细节
+
+我们需要找出循环中使用的变量，并且识别这些变量的类型。然后我们需要决定如何以人类可读的格式打印它们。
+
+*   我们如何找到循环？
+*   我们如何在循环中找到变量？
+*   我们如何识别变量的类型？
+*   我们如何打印结果？
+*   我们如何判断类型是否不稳定？
+
+我将首先解决最后一个问题，因为整个尝试是否成功都取决于它。我们已经研究了一个不稳定的函数，作为程序员，也看到了如何识别不稳定的变量，但是我们需要程序去找到它们。这听起来像是需要通过模拟函数来查找值可能会发生变化的变量——听起来需要好些工作。对我们来说幸运的是，Julia的类型推断已经通过跟踪函数执行完成了类型检测。
+
+`unstable`中的`sum`的类型是`Union(Float64,Int64)` 。这是一种`UnionType`，是一种特殊类型。这种类型的变量可以保存一组类型值中的任一类型值。比如`Union(Float64,Int64)`类型的变量既可以保存`Int64`，也可以保存`Float64`类型的值，但这个值只能是其中一种。`UnionType`可以连接任意数量的类型（例如，`UnionType(Float64, Int64, Int32)`连接了三种类型）。我们要在循环中查找`UnionType` 类型的变量。
+
+将代码解析为代表性结构是一项复杂的业务，并且它随着语言的发展变得越来越复杂。在本章中，我们将依赖于编译器使用的内部数据结构。这意味着我们不必担心读取文件或解析它们，但它确实意味着我们必须和一些不受我们控制、有时感觉笨拙或丑陋的数据结构打交道。
+
+除去因无需自己解析代码所节省下来的所有工作，使用与编译器相同的数据结构意味着我们的检查将是基于一种编译器理解的准确评估——这意味着我们的检查将与代码实际运行的方式保持一致。
+
+从Julia代码中检查Julia代码的过程称为自省（introspection）。当你我自省时，我们思考的正是我们思考和感受的方式和原因。当代码自省时，它会检查相同语言（可能是自己的代码）的代码的表达或执行属性。当代码的自省扩展到修改被检查的代码时，它被称为元编程（编写或修改程序的程序）。
+
+#### Julia的自省
+
+Julia的自省很简单。它有四个内置函数，能让我们看到编译器在想什么： `code_lowered` ， `code_typed` ， `code_llvm`和`code_native` 。编译过程中哪个步骤越先有输出，哪个函数就越排在前面。第一个函数最接近我们输入的代码，而最后一个最接近CPU运行的代码。在本章中，我们将重点关注`code_typed` ，它为我们提供了优化的，类型推断的抽象语法树（AST）。
+
+`code_typed`需要两个参数：感兴趣的函数和一个参数类型的元组。例如，如果我们想在使用两个`Int64`参数调用函数`foo`时观察它的AST，那么我们将调用`code_typed(foo, (Int64,Int64))` 。
+
+```julia
+function foo(x,y)
+  z = x + y
+  return 2 * z
+end
+
+code_typed(foo,(Int64,Int64))
+```
+
+这是`code_typed`将会返回的结构：
+```
+    1-element Array{Any,1}:
+    :($(Expr(:lambda, {:x,:y}, {{:z},{{:x,Int64,0},{:y,Int64,0},{:z,Int64,18}},{}},
+     :(begin  # none, line 2:
+            z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
+            return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
+        end::Int64))))
+```
+
+这是一个`Array`，它允许`code_typed`返回多个匹配方法。函数和参数类型的某些组合可能无法完全确定应调用哪个方法。例如，你可以传入类似`Any`的类型（而不是`Int64` ）。`Any`是类型层次结构的顶部类型。所有类型都是`Any` （包括`Any`）的子类型。如果我们在参数类型的元组中包含`Any` ，并且有多个匹配方法，那么`code_typed`的`Array`将包含多个元素，每个匹配方法都会有一个元素。
+
+为了方便讨论，让我们将`Expr`的例子单独拉出来。
+```julia
+julia> e = code_typed(foo,(Int64,Int64))\[1\]
+:($(Expr(:lambda, {:x,:y}, {{:z},{{:x,Int64,0},{:y,Int64,0},{:z,Int64,18}},{}},
+ :(begin  # none, line 2:
+        z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
+        return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
+    end::Int64))))
+```
+
+我们感兴趣的结构在`Array`之中：它是一个`Expr` 。Julia使用`Expr` （表达式的缩写）来表示其AST。 （抽象语法树是编译器对代码含义的理解。这有点像你在小学时做的语句图解。）我们得到的`Expr`代表了一种方法。它包含了一些元数据（关于方法中出现的变量）和构成方法主体的表达式。
+
+现在我们可以问一些关于`e`的问题了。
+
+我们可以通过使用`names`函数来询问`Expr`具有哪些属性，该函数适用于任何Julia的值或类型。它返回由该类型（或值的类型）定义的名称`Array` 。
+
+```julia
+julia> names(e)
+3-element Array{Symbol,1}:
+ :head
+ :args
+ :typ 
+```
+
+我们只是询问了`e`有什么样的名称，现在我们可以询问每个名称对应的值。`Expr`有三个属性： `head` ， `typ`和`args` 。
+
+```julia
+julia> e.head
+:lambda
+
+julia> e.typ
+Any
+
+julia> e.args
+3-element Array{Any,1}:
+ {:x,:y}                                                                                                                                                                                     
+ {{:z},{{:x,Int64,0},{:y,Int64,0},{:z,Int64,18}},{}}                                                                                                                                         
+ :(begin  # none, line 2:
+        z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
+        return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
+    end::Int64)
+```
+
+马上我们就看到打印出了一些值，但关于它们的含义或使用方式，还无法给我们足够的信息。
+
+*   `head`告诉我们这是什么样的表达式。通常，你会在Julia中使用单独的类型，但`Expr`是一种对解析器中使用的结构进行建模的类型。解析器是用某种Scheme语言编写的，它将所有内容都构造为嵌套列表。 `head`告诉我们`Expr`的其余部分是如何组织的以及它代表了什么样的表达式。
+*   `typ`是表达式自动推断的返回类型。当你求解任何表达式时，它会产生一些值。 `typ`是表达式求得的值的类型。对于几乎所有`Expr` ，该值将为`Any` （这永远都正确，因为每种可能的类型都是`Any`的子类型）。只有类型推断方法的`body`和它们内部的大多数表达式才会将其`typ`设置为更具体的类型。（由于`type`是关键字，因此该字段不能用type作为其名称。）
+*   `args`是`Expr`最复杂的部分。它的结构根据`head`的值而变化。它始终是一个`Array{Any}` （一个无类型数组），但除此之外，结构也会发生变化。
+
+在表示一个方法的`Expr`中， `e.args`中将有三个元素：
+
+```julia
+julia> e.args\[1\] # 参数名称的符号
+2-element Array{Any,1}:
+ :x
+ :y
+```
+
+符号是一种特殊类型，用于表示变量，常量，函数和模块的名称。它们与字符串的类型不同，因为它们专门用来表示程序构造的名称。
+
+```julia
+julia> e.args\[2\] # 变量元数据的3个列表
+3-element Array{Any,1}:
+ {:z}                                     
+ {{:x,Int64,0},{:y,Int64,0},{:z,Int64,18}}
+ {}                                       
+```
+
+上面的第一个列表包含所有局部变量的名称，这里我们只有一个（ `z` ）。第二个列表包含方法中每个变量和参数的元组。每个元组都有变量名，变量的推断类型和数字。该数字以机器友好（而不是人类友好）的方式传达了有关变量如何使用的信息。最后一个列表是捕获的变量名称，在这个例子中它是空的。
+
+```julia
+julia> e.args\[3\] # 方法的主体
+:(begin  # none, line 2:
+        z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
+        return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
+    end::Int64)
+```
+
+前两个`args`元素是第三个元素的元数据。虽然元数据非常有趣，但现在不是必须的。重要的部分是方法的主体，而这就是第三个要素。下面是另一个`Expr` 。
+
+```julia
+julia> body = e.args\[3\]
+:(begin  # none, line 2:
+        z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
+        return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
+    end::Int64)
+
+julia> body.head
+:body
+```
+
+这个`Expr`的头是`:body`，因为它是方法的主体。
+
+```julia
+julia> body.typ
+Int64
+```
+
+`typ`是方法的推断返回类型。
+
+```julia
+julia> body.args
+4-element Array{Any,1}:
+ :( # none, line 2:) 
+ :(z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64)
+ :( # line 3:) 
+ :(return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64)    
+```
+
+`args`包含一个表达式列表：即方法主体中的表达式列表。有一些行号注释（如 :`:( # line 3:)` ），但主体的大部分在做的是设置`z` （ `z = x + y` ）的值并返回`2 * z` 。注意，这些操作已被特定的`Int64`类型的内部函数替换。`top(function-name)`表示了一个内在函数，这是在Julia的代码生成中实现的东西，而不是Julia本身实现的东西。
+
+我们还没有看过循环是什么样子，所以让我们尝试一下。
+
+```julia
+julia> function lloop(x)
+         for x = 1:100
+           x *= 2
+         end
+       end
+lloop (generic function with 1 method)
+
+julia> code_typed(lloop, (Int,))\[1\].args\[3\]
+:(begin  # none, line 2:
+        #s120 = $(Expr(:new, UnitRange{Int64}, 1, :(((top(getfield))(Intrinsics,
+         :select_value))((top(sle_int))(1,100)::Bool,100,(top(box))(Int64,(top(
+         sub_int))(1,1))::Int64)::Int64)))::UnitRange{Int64}
+        #s119 = (top(getfield))(#s120::UnitRange{Int64},:start)::Int64        unless 
+         (top(box))(Bool,(top(not_int))(#s119::Int64 === (top(box))(Int64,(top(
+         add_int))((top(getfield))
+         (#s120::UnitRange{Int64},:stop)::Int64,1))::Int64::Bool))::Bool goto 1
+        2: 
+        _var0 = #s119::Int64
+        _var1 = (top(box))(Int64,(top(add_int))(#s119::Int64,1))::Int64
+        x = _var0::Int64
+        #s119 = _var1::Int64 # line 3:
+        x = (top(box))(Int64,(top(mul_int))(x::Int64,2))::Int64
+        3: 
+        unless (top(box))(Bool,(top(not_int))((top(box))(Bool,(top(not_int))
+         (#s119::Int64 === (top(box))(Int64,(top(add_int))((top(getfield))(
+         #s120::UnitRange{Int64},:stop)::Int64,1))::Int64::Bool))::Bool))::Bool
+         goto 2
+        1:         0: 
+        return
+    end::Nothing)
+```
+
+你会注意到主题中并没有for或while循环。当编译器将代码从我们编写的代码转换为CPU理解的二进制指令时，会删除对人类有用但不被CPU理解的功能（如循环）。循环已被重写为`label`和`goto`表达式。`goto`后有一个数字，每个`label`也有一个数字。`goto`将跳转到具有相同数字的`label` 。
+
+#### 检测和提取循环
+
+我们将通过查找后向跳转的`goto`表达式来识别循环。
+
+我们需要找到标签和那些goto，并弄清匹配的部分。我打算先把全部实现给你。在代码墙之后，我们再分解和检查这些代码片段。
+
+```julia
+# 这是一个尝试检测方法体内循环的函数
+# 返回一个或多个循环函数中的行
+function loopcontents(e::Expr)
+  b = body(e)
+  loops = Int\[\]
+  nesting = 0
+  lines = {}
+  for i in 1:length(b)
+    if typeof(b\[i\]) == LabelNode
+      l = b\[i\].label
+      jumpback = findnext(x-> (typeof(x) == GotoNode && x.label == l) 
+                              || (Base.is_expr(x,:gotoifnot) && x.args\[end\] == l),
+                          b, i)
+      if jumpback != 0
+        push!(loops,jumpback)
+        nesting += 1
+      end
+    end
+    if nesting > 0
+      push!(lines,(i,b\[i\]))
+    end
+
+    if typeof(b\[i\]) == GotoNode && in(i,loops)
+      splice!(loops,findfirst(loops,i))
+      nesting -= 1
+    end
+  end
+  lines
+end
+```
+
+现在解释一下：
+
+```julia
+b = body(e)
+```
+
+我们首先将方法主体中的所有表达式作为`Array` 。 `body`是我已经实现的函数：
+
+```julia
+  ＃返回方法的主体。
+  ＃参数是表示方法的Expr，
+  ＃返回向量{Expr}。
+  function body(e::Expr)
+    return e.args\[3\].args
+  end
+```
+
+然后：
+
+```julia
+  loops = Int\[\]
+  nesting = 0
+  lines = {}
+```
+
+`loops`是个用来保存标签行号的`Array`，这些行号是产生循环的goto所对应的标签行号。`nesting`表示我们当前所处的循环次数。`lines`是一个保存（索引， `Expr` ）元组的`Array`。
+
+```julia
+  for i in 1:length(b)
+    if typeof(b\[i\]) == LabelNode
+      l = b\[i\].label
+      jumpback = findnext(
+        x-> (typeof(x) == GotoNode && x.label == l) 
+            || (Base.is_expr(x,:gotoifnot) && x.args\[end\] == l),
+        b, i)
+      if jumpback != 0
+        push!(loops,jumpback)
+        nesting += 1
+      end
+    end
+```
+
+我们看一下`e`主体中的每个表达式。如果它是一个标签，我们检查是否有跳转到此标签的goto（并且发生在当前索引之后）。如果`findnext`的结果大于零，那么这样的goto节点就存在，所以我们将它添加到`loops` （我们当前所在的循环的`Array` ）并增加嵌套级别。
+
+```julia
+    if nesting > 0
+      push!(lines,(i,b\[i\]))
+    end
+```
+
+如果我们当前正处在循环中，我们将当前行推到我们的返回行数组中。
+
+```julia
+    if typeof(b\[i\]) == GotoNode && in(i,loops)
+      splice!(loops,findfirst(loops,i))
+      nesting -= 1
+    end
+  end
+  lines
+end
+```
+
+如果我们在`GotoNode`中 ，那么我们检查它是否是循环的结束。如果是，我们从`loops`中删除该条目并降低嵌套级别。
+
+这个函数的结果是`lines`数组，一个（索引，值）元组的数组。这意味着数组中的每个值都有一个到方法\-主体\- `Expr`的主体的索引，和该索引处的值。`lines`中的每个元素都是循环中的一个表达式。
+
+#### 查找和键入变量
+
+我们刚刚完成了`loopcontents`函数 ，它返回了循环内部的所有`Expr` 。我们的下一个函数是`loosetypes` ，它获取`Expr`的列表并返回松散类型的变量列表。稍后，我们将`loopcontents`的输出传递给`loosetypes` 。
+
+在循环内发生的每个表达式中， `loosetypes`搜索符号及其相关类型的出现次数。变量的使用在AST中表示为`SymbolNode` ; `SymbolNode`保存变量的名称和其推断类型。
+
+我们不能检查每个`loopcontents`收集到的表达式，来判断它是否是一个`SymbolNode` 。问题是每个`Expr`可能包含一个或多个`Expr` ;每个`Expr`也可能包含一个或多个`SymbolNode` 。这意味着我们需要提取任何嵌套的`Expr` ，以便我们可以依次从中查找`SymbolNode` 。
+
+```julia
+# 给定\`lr\`，一个表达式向量（Expr + 文本等）
+# 尝试在\`lr\`中查找所有出现的变量
+# 并确定它们的类型函数
+function loosetypes(lr::Vector)
+  symbols = SymbolNode\[\]
+  for (i,e) in lr
+    if typeof(e) == Expr
+      es = copy(e.args)
+      while !isempty(es)
+        e1 = pop!(es)
+        if typeof(e1) == Expr
+          append!(es,e1.args)
+        elseif typeof(e1) == SymbolNode
+          push!(symbols,e1)
+        end
+      end
+    end
+  end
+  loose_types = SymbolNode\[\]
+  for symnode in symbols
+    if !isleaftype(symnode.typ) && typeof(symnode.typ) == UnionType
+      push!(loose_types, symnode)
+    end
+  end
+  return loose_types
+end
+
+  symbols = SymbolNode\[\]
+  for (i,e) in lr
+    if typeof(e) == Expr
+      es = copy(e.args)
+      while !isempty(es)
+        e1 = pop!(es)
+        if typeof(e1) == Expr
+          append!(es,e1.args)
+        elseif typeof(e1) == SymbolNode
+          push!(symbols,e1)
+        end
+      end
+    end
+  end
+```
+
+while循环以递归方式遍历所有`Expr`的内部。每次循环找到`SymbolNode` ，就将它添加到`symbols`矢量 。
+
+```julia
+  loose_types = SymbolNode\[\]
+  for symnode in symbols
+    if !isleaftype(symnode.typ) && typeof(symnode.typ) == UnionType
+      push!(loose_types, symnode)
+    end
+  end
+  return loose_types
+end
+```
+
+现在我们有一个变量列表及其类型，因此很容易检查类型是否松散。这种检查由 `loosetypes`查找特定类型的非具体类型（ `UnionType`）完成 。当我们认为所有非具体类型都属于“失败”时，我们会得到许多“失败”的结果。这是因为我们正在使用带注释的参数类型来评估每个方法，这些参数类型可能是抽象的。
+
+### 提高可用性
+
+既然我们已经可以对表达式进行检查，我们应该让它能更方便地调用用户代码。我们将创造两种调用`checklooptypes` 的办法：
+
+1. 对整个函数调用：检查给定函数的每个方法。
+
+2. 对一个表达式调用：用于用户自己提取`code_typed`结果的场合。
+
+```julia
+## 对于一个给定函数，对每个方法运行checklooptypes
+function checklooptypes(f::Callable;kwargs...)
+  lrs = LoopResult\[\]
+  for e in code_typed(f)
+    lr = checklooptypes(e)
+    if length(lr.lines) > 0 push!(lrs,lr) end
+  end
+  LoopResults(f.env.name,lrs)
+end
+
+# 对于表示一个方法的Expr，
+# 检查循环中使用的每个变量的类型
+# 都有具体类型
+checklooptypes(e::Expr;kwargs...) = 
+ LoopResult(MethodSignature(e),loosetypes(loopcontents(e)))
+```
+
+对于只有一种方法的函数，我们可以看到两种方式的效果几乎相同：
+
+```julia
+julia> using TypeCheck
+
+julia> function foo(x::Int)
+         s = 0
+         for i = 1:x
+           s += i/2
+         end
+         return s
+       end
+foo (generic function with 1 method)
+
+julia> checklooptypes(foo)
+foo(Int64)::Union(Int64,Float64)
+	s::Union(Int64,Float64)
+	s::Union(Int64,Float64)
+
+julia> checklooptypes(code_typed(foo,(Int,))\[1\])
+(Int64)::Union(Int64,Float64)
+	s::Union(Int64,Float64)
+	s::Union(Int64,Float64)
+```
+
+#### 漂亮的输出
+
+我在这里跳过了一个实现细节：我们是如何将结果打印到REPL（交互式编译器）的？
+
+首先，我制造了一些新的类型。`LoopResults`是对整个函数的检查结果，它具有函数名称和每个方法的结果。`LoopResult`是单个方法的检查结果，它具有参数类型和松散类型的变量。
+
+`checklooptypes`函数返回一个`LoopResults` 。该类型定义了一个名为`show`的函数。REPL对它想要显示的值调用`display`，然后 `display`将调用执行我们的`show`。
+
+此代码对于此静态分析的可用性非常重要，但它本身不进行静态分析。你应该在你的实现语言中，为漂亮的打印类型和输出采用更喜欢的方法。这只是Julia中的做法。
+
+```julia
+type LoopResult
+  msig::MethodSignature
+  lines::Vector{SymbolNode}
+  LoopResult(ms::MethodSignature,ls::Vector{SymbolNode}) = new(ms,unique(ls))
+end
+
+function Base.show(io::IO, x::LoopResult)
+  display(x.msig)
+  for snode in x.lines
+    println(io,"\\t",string(snode.name),"::",string(snode.typ))
+  end
+end
+
+type LoopResults
+  name::Symbol
+  methods::Vector{LoopResult}
+end
+
+function Base.show(io::IO, x::LoopResults)
+  for lr in x.methods
+    print(io,string(x.name))
+    display(lr)
+  end
+end
+```
+
+## 查找未使用的变量
+
+有时，当你在编写程序时，输错了变量名称。程序无法辨别你输错的变量实际上是指之前拼写正确的那个变量。它看到的是一个只使用了一次的变量，而你可能看到的是变量名称拼写错误。需要变量声明的语言自然会捕获这些拼写错误，但许多动态语言不需要声明，因此需要额外的分析层来捕获这些错误。
+
+我们可以通过查找仅使用一次、或仅以一种方式使用过的变量来查找拼写错误的变量名称（以及其他未使用的变量）。
+
+下面是一个带有一个拼写错误名称的代码示例。
+
+```julia
+function foo(variable_name::Int)
+  sum = 0
+  for i=1:variable_name
+    sum += variable_name
+  end
+  variable_nme = sum
+  return variable_name
+end
+```
+
+这种错误可能会导致代码中出现问题，而只有在运行时才能发现。假设你的每个变量名称都只打错一次。我们可以将变量的用法分为读和写。如果拼写错误发生在写时（如， `worng = 5` ），则不会抛出错误。你只是默默地将值放在错误的变量中——查找错误的过程可能令人懊恼。如果拼写错误发生在读时（如， `right = worng + 2` ），那么在运行代码时会出现运行时错误。我们希望对此有一个静态警告，以便你可以更快地找到此错误，但你还是需要等到运行代码才能发现这个问题。
+
+随着代码变得越来越长、越来越复杂，要发现错误也变得更加困难——除非静态分析能帮到你。
+
+### 左侧和右侧
+
+另一个讨论“读”和“写”这两种用法的方式是称它们为“右侧”（RHS）和“左侧”（LHS）用法。这是指变量相对于 `=` 符号的位置。
+
+以下是`x`一些用法：
+
+*   左侧：
+    *   `x = 2`
+    *   `x = y + 22`
+    *   `x = x + y + 2`
+    *   `x += 2` (转换为 `x = x + 2`)
+*   右侧：
+    *   `y = x + 22`
+    *   `x = x + y + 2`
+    *   `x += 2` (转换为 `x = x + 2`)
+    *   `2 * x`
+    *   `X`
+
+注意， `x = x + y + 2`和`x += 2`这两个表达式在左侧和右侧都出现了，因为`x`出现在`=`符号的两侧。
+
+### 寻找一次性变量
+
+我们需要查找两种情况：
+
+1.  使用一次的变量。
+2.  只在左侧或右侧使用的变量。
+
+我们将查找所有变量用法，但我们将分别查找左侧和右侧用法，以涵盖这两种情况。
+
+#### 寻找左侧用法
+
+变量在左侧，是指变量需要处在`=`的左边。这意味着我们可以在AST中查找`=`符号，然后查看它们的左侧以找到相关变量。
+
+在AST中， `=`是带有`:(=)`头部的`Expr` 。（括号是为了清楚地表明这是`=`的符号而不是另一个运算符， `:=` .）`args`的第一个值将是其左侧的变量名称。因为我们正在查看编译器已经清理过的AST，所以我们的`=`符号左侧（几乎）总是只有一个符号。
+
+让我们看看代码中的含义：
+```julia
+julia> :(x = 5)
+:(x = 5)
+
+julia> :(x = 5).head
+:(=)
+
+julia> :(x = 5).args
+2-element Array{Any,1}:
+  :x
+ 5  
+
+julia> :(x = 5).args\[1\]
+:x
+```
+
+下面是完整的实现，随后是解释。
+
+```julia
+# 返回赋值（=）左侧使用的所有变量列表
+#
+# 参数：
+#   e: 一个表示方法的Expr，正如code_typed中得到的
+#
+# 返回：
+#   一个{符号}集合，其中每个元素都出现在e中赋值的左侧。
+#
+function find\_lhs\_variables(e::Expr)
+  output = Set{Symbol}()
+  for ex in body(e)
+    if Base.is_expr(ex,:(=))
+      push!(output,ex.args\[1\])
+    end
+  end
+  return output
+end
+```
+
+```julia
+  output = Set{Symbol}()
+```
+
+我们有一个符号集合，这些是我们在左侧找到的变量名称。
+
+```julia
+  for ex in body(e)
+    if Base.is_expr(ex,:(=))
+      push!(output,ex.args\[1\])
+    end
+  end
+```
+
+我们没有深入研究表达式，因为`code_typed` 的AST非常扁平。循环和条件语句已转换为goto控制流的扁平语句。在函数调用的参数中不会隐藏有任何赋值。如果等号左侧有任何符号以外的东西，则此代码将失败。这没有考虑到两个特定的边缘情况：数组访问（如`a[5]` ，将表示为`:ref`表达式）和属性（如`a.head` ，将表示为`:.`表达式）。这些仍始终将相关符号作为其`args`的第一个值，它可能只是藏得深一些（如在`a.property.name.head.other_property` ）。此代码无法处理这些情况，但`if`语句中的几行代码可以解决这个问题。
+
+```julia
+      push!(output,ex.args\[1\])
+```
+当我们找到左侧变量时，我们将变量名称`push!` 到`Set`中 。该`Set`能确保我们每个名称只有一个副本。
+
+#### 寻找右侧用法
+
+要查找所有其他变量的使用，我们还需要查看每个`Expr` 。这更加复杂，因为我们基本上关心所有的`Expr` ，而不仅仅是有`:(=)`的那些。还因为我们必须深入研究嵌套的`Expr` （以处理嵌套函数调用）。
+
+这是完整的实现，随后是解释。
+```julia
+# 给定一个表达式，查找其中使用的（右侧）变量
+#
+# 参数：e: 一个Expr
+#
+# 返回: 一个{符号}集合, 其中每个e都在e的右侧表达式中
+#
+function find\_rhs\_variables(e::Expr)
+  output = Set{Symbol}()
+
+  if e.head == :lambda
+    for ex in body(e)
+      union!(output,find\_rhs\_variables(ex))
+    end
+  elseif e.head == :(=)
+    for ex in e.args\[2:end\]  # skip lhs
+      union!(output,find\_rhs\_variables(ex))
+    end
+  elseif e.head == :return
+    output = find\_rhs\_variables(e.args\[1\])
+  elseif e.head == :call
+    start = 2  # skip function name
+    e.args\[1\] == TopNode(:box) && (start = 3)  # skip type name
+    for ex in e.args\[start:end\]
+      union!(output,find\_rhs\_variables(ex))
+    end
+  elseif e.head == :if
+   for ex in e.args # want to check condition, too
+     union!(output,find\_rhs\_variables(ex))
+   end
+  elseif e.head == :(::)
+    output = find\_rhs\_variables(e.args\[1\])
+  end
+
+  return output
+end
+```
+
+该函数的主要结构是一个庞大的if-else语句，其中每个分支处理一种不同的头部符号。
+
+```julia
+  output = Set{Symbol}()
+```
+
+`output`是变量名称的集合，我们将在函数末尾返回。由于我们只关心一件事，那就是每个变量至少被读取一次。因此使用`Set`可以使我们免于担心变量名称的唯一性。
+
+```julia
+  if e.head == :lambda
+    for ex in body(e)
+      union!(output,find\_rhs\_variables(ex))
+    end
+```
+
+这是if-else语句中的第一个条件。`:lambda`代表函数体。我们对定义的主体进行了递归，这样应该能从定义中获得所有右侧变量。
+
+```julia
+  elseif e.head == :(=)
+    for ex in e.args\[2:end\]  # skip lhs
+      union!(output,find\_rhs\_variables(ex))
+    end
+```
+
+如果头部是`:(=)` ，则表达式是一个赋值过程。我们跳过`args`的第一个元素，因为这是被赋值的变量。对于每个剩余的表达式，我们递归地找到右侧变量并将它们添加到我们的集合中。
+
+```julia
+  elseif e.head == :return
+    output = find\_rhs\_variables(e.args\[1\])
+```
+
+如果这是一个return语句，那么`args`的第一个元素是返回了值的表达式。我们将把其中的任何变量添加到我们的集合中。
+
+```julia
+  elseif e.head == :call
+    # 跳过函数名
+    for ex in e.args\[2:end\]
+      union!(output,find\_rhs\_variables(ex))
+    end
+```
+
+对于函数调用，我们希望获得调用的所有参数中使用的所有变量。我们跳过函数名，它是`args`的第一个元素。
+
+```julia
+  elseif e.head == :if
+   for ex in e.args # want to check condition, too
+     union!(output,find\_rhs\_variables(ex))
+   end
+```
+
+表示if语句的`Expr`具有值为`:if`的`head` 。我们希望从if语句主体中的所有表达式中获取变量用法，因此我们对`args`每个元素进行递归。
+
+```julia
+  elseif e.head == :(::)
+    output = find\_rhs\_variables(e.args\[1\])
+  end
+```
+
+`:(::)`运算符用于添加类型注释。第一个参数是被注释的表达式或变量。我们检查被注释的表达式中的变量用法。
+
+```julia
+  return output
+```
+
+在函数的最后，我们返回一组右侧变量。
+
+还有一些代码可以简化上述方法。因为上面的版本只处理`Expr` ，但是递归传递的某些值可能不是`Expr` ，我们还需要一些方法来适当地处理其他可能的类型。
+
+```julia
+# 递归基本用例，用于简化Expr版本中的控制流
+find\_rhs\_variables(a) = Set{Symbol}()  # 未经处理，应当是立即值，如Int
+find\_rhs\_variables(s::Symbol) = Set{Symbol}(\[s\])
+find\_rhs\_variables(s::SymbolNode) = Set{Symbol}(\[s.name\])
+```
+
+#### 组合起来
+
+现在我们已经定义了上述的两个函数，我们可以一起使用它们来查找只进行了读取或写入的变量。将查找它们的函数命名为`unused_locals` 。
+
+```julia
+function unused_locals(e::Expr)
+  lhs = find\_lhs\_variables(e)
+  rhs = find\_rhs\_variables(e)
+  setdiff(lhs,rhs)
+end
+```
+
+`unused_locals`将返回一组变量名称。很容易就可以编写一个函数，来确定`unused_locals`的输出是否可以计为“通过”。如果该集为空，则该方法通过。如果一个函数的所有方法都通过，则此函数通过。下面的函数`check_locals`实现了这个逻辑。
+
+```julia
+check_locals(f::Callable) = all(\[check_locals(e) for e in code_typed(f)\])
+check_locals(e::Expr) = isempty(unused_locals(e))
+```
+
+## 结论
+我们对Julia代码进行了两次静态分析——一种基于类型，一种基于变量使用。
+
+静态类型语言已经完成了我们基于类型的分析所做的工作；额外的基于类型的静态分析在动态类型语言中最常用。已经有很多（主要是研究）项目试图为Python，Ruby和Lisp等语言构建静态类型推断系统。这些系统通常围绕可选的类型注释构建。你可以在需要时使用静态类型，而在不需要时转而使用动态类型。这对于将一些静态类型集成到现有代码库中特别有用。
+
+非类型基础的检查（如我们的变量使用检查）皆适用于动态和静态类型语言。但是，许多静态类型的语言（如C ++和Java）要求你声明变量，并且已经提供了类似我们创建的基本警告。仍然可以编写自定义检查。例如，特定于项目样式指南的检查，或基于安全策略的额外安全预防检查。
+
+虽然Julia确实有很好的工具可以实现静态分析，但它并不孤单。显然，Lisp出了名的地方，就是能使其代码成为嵌套列表的数据结构，所以它往往很容易获得AST。 Java也暴露了它的AST，尽管它的AST比Lisp复杂得多。某些语言或语言工具链的设计不允许纯用户在内部表达式中肆意搜索。对于开源工具链（特别是有良好注释的工具链），一种选择是在环境中添加钩子（hook），以使你能访问AST。
+
+如果这不起作用，最后的退路就是自己写一个解析器，不过要尽可能避免这种情况。覆盖大多数编程语言的完整语法需要做很多工作，并且当有新功能添加到语言中时，你必须自己去更新它（而无法从上游自动获取更新）。根据你要执行的检查，你可能只需解析某些行或某个语言功能的子集，这将大大降低编写自己的解析器的成本。
+
+希望你对静态分析工具如何编写的新理解能帮助你理解你代码中使用的工具，并且也许还能激发你编写自己的工具。
