@@ -53,7 +53,7 @@
 |A Flow Shop Scheduler|待认领||
 |An Archaeology-Inspired Database|待认领||
 |A Python Interpreter Written in Python|[qingyunha](https://github.com/qingyunha)|已完成|
-|A 3D Modeller|翻译中|[Kalung Tsang](https://github.com/TsangKalung)|
+|A 3D Modeller|[Kalung Tsang](https://github.com/TsangKalung)|翻译中|
 |A Simple Object Model|[Manjusaka](http://manjusaka.itscoder.com/)|已完成|
 |Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|已完成|
 |A Pedometer in the Real World|待认领||
