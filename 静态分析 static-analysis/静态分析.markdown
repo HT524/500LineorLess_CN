@@ -233,7 +233,7 @@ code_typed(foo,(Int64,Int64))
 
 为了方便讨论，让我们将`Expr`的例子单独拉出来。
 ```julia
-julia> e = code_typed(foo,(Int64,Int64))\[1\]
+julia> e = code_typed(foo,(Int64,Int64))[1]
 :($(Expr(:lambda, {:x,:y}, {{:z},{{:x,Int64,0},{:y,Int64,0},{:z,Int64,18}},{}},
  :(begin  # none, line 2:
         z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
@@ -283,7 +283,7 @@ julia> e.args
 在表示一个方法的`Expr`中， `e.args`中将有三个元素：
 
 ```julia
-julia> e.args\[1\] # 参数名称的符号
+julia> e.args[1] # 参数名称的符号
 2-element Array{Any,1}:
  :x
  :y
@@ -292,7 +292,7 @@ julia> e.args\[1\] # 参数名称的符号
 符号是一种特殊类型，用于表示变量，常量，函数和模块的名称。它们与字符串的类型不同，因为它们专门用来表示程序构造的名称。
 
 ```julia
-julia> e.args\[2\] # 变量元数据的3个列表
+julia> e.args[2] # 变量元数据的3个列表
 3-element Array{Any,1}:
  {:z}                                     
  {{:x,Int64,0},{:y,Int64,0},{:z,Int64,18}}
@@ -302,7 +302,7 @@ julia> e.args\[2\] # 变量元数据的3个列表
 上面的第一个列表包含所有局部变量的名称，这里我们只有一个（ `z` ）。第二个列表包含方法中每个变量和参数的元组。每个元组都有变量名，变量的推断类型和数字。该数字以机器友好（而不是人类友好）的方式传达了有关变量如何使用的信息。最后一个列表是捕获的变量名称，在这个例子中它是空的。
 
 ```julia
-julia> e.args\[3\] # 方法的主体
+julia> e.args[3] # 方法的主体
 :(begin  # none, line 2:
         z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
         return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
@@ -312,7 +312,7 @@ julia> e.args\[3\] # 方法的主体
 前两个`args`元素是第三个元素的元数据。虽然元数据非常有趣，但现在不是必须的。重要的部分是方法的主体，而这就是第三个要素。下面是另一个`Expr` 。
 
 ```julia
-julia> body = e.args\[3\]
+julia> body = e.args[3]
 :(begin  # none, line 2:
         z = (top(box))(Int64,(top(add_int))(x::Int64,y::Int64))::Int64 # line 3:
         return (top(box))(Int64,(top(mul_int))(2,z::Int64))::Int64
@@ -352,7 +352,7 @@ julia> function lloop(x)
        end
 lloop (generic function with 1 method)
 
-julia> code_typed(lloop, (Int,))\[1\].args\[3\]
+julia> code_typed(lloop, (Int,))[1].args[3]
 :(begin  # none, line 2:
         #s120 = $(Expr(:new, UnitRange{Int64}, 1, :(((top(getfield))(Intrinsics,
          :select_value))((top(sle_int))(1,100)::Bool,100,(top(box))(Int64,(top(
@@ -390,14 +390,14 @@ julia> code_typed(lloop, (Int,))\[1\].args\[3\]
 # 返回一个或多个循环函数中的行
 function loopcontents(e::Expr)
   b = body(e)
-  loops = Int\[\]
+  loops = Int[]
   nesting = 0
   lines = {}
   for i in 1:length(b)
-    if typeof(b\[i\]) == LabelNode
-      l = b\[i\].label
+    if typeof(b[i]) == LabelNode
+      l = b[i].label
       jumpback = findnext(x-> (typeof(x) == GotoNode && x.label == l) 
-                              || (Base.is_expr(x,:gotoifnot) && x.args\[end\] == l),
+                              || (Base.is_expr(x,:gotoifnot) && x.args[end] == l),
                           b, i)
       if jumpback != 0
         push!(loops,jumpback)
@@ -405,10 +405,10 @@ function loopcontents(e::Expr)
       end
     end
     if nesting > 0
-      push!(lines,(i,b\[i\]))
+      push!(lines,(i,b[i]))
     end
 
-    if typeof(b\[i\]) == GotoNode && in(i,loops)
+    if typeof(b[i]) == GotoNode && in(i,loops)
       splice!(loops,findfirst(loops,i))
       nesting -= 1
     end
@@ -430,14 +430,14 @@ b = body(e)
   ＃参数是表示方法的Expr，
   ＃返回向量{Expr}。
   function body(e::Expr)
-    return e.args\[3\].args
+    return e.args[3].args
   end
 ```
 
 然后：
 
 ```julia
-  loops = Int\[\]
+  loops = Int[]
   nesting = 0
   lines = {}
 ```
@@ -446,11 +446,11 @@ b = body(e)
 
 ```julia
   for i in 1:length(b)
-    if typeof(b\[i\]) == LabelNode
-      l = b\[i\].label
+    if typeof(b[i]) == LabelNode
+      l = b[i].label
       jumpback = findnext(
         x-> (typeof(x) == GotoNode && x.label == l) 
-            || (Base.is_expr(x,:gotoifnot) && x.args\[end\] == l),
+            || (Base.is_expr(x,:gotoifnot) && x.args[end] == l),
         b, i)
       if jumpback != 0
         push!(loops,jumpback)
@@ -463,14 +463,14 @@ b = body(e)
 
 ```julia
     if nesting > 0
-      push!(lines,(i,b\[i\]))
+      push!(lines,(i,b[i]))
     end
 ```
 
 如果我们当前正处在循环中，我们将当前行推到我们的返回行数组中。
 
 ```julia
-    if typeof(b\[i\]) == GotoNode && in(i,loops)
+    if typeof(b[i]) == GotoNode && in(i,loops)
       splice!(loops,findfirst(loops,i))
       nesting -= 1
     end
@@ -496,7 +496,7 @@ end
 # 尝试在\`lr\`中查找所有出现的变量
 # 并确定它们的类型函数
 function loosetypes(lr::Vector)
-  symbols = SymbolNode\[\]
+  symbols = SymbolNode[]
   for (i,e) in lr
     if typeof(e) == Expr
       es = copy(e.args)
@@ -510,7 +510,7 @@ function loosetypes(lr::Vector)
       end
     end
   end
-  loose_types = SymbolNode\[\]
+  loose_types = SymbolNode[]
   for symnode in symbols
     if !isleaftype(symnode.typ) && typeof(symnode.typ) == UnionType
       push!(loose_types, symnode)
@@ -519,7 +519,7 @@ function loosetypes(lr::Vector)
   return loose_types
 end
 
-  symbols = SymbolNode\[\]
+  symbols = SymbolNode[]
   for (i,e) in lr
     if typeof(e) == Expr
       es = copy(e.args)
@@ -538,7 +538,7 @@ end
 while循环以递归方式遍历所有`Expr`的内部。每次循环找到`SymbolNode` ，就将它添加到`symbols`矢量 。
 
 ```julia
-  loose_types = SymbolNode\[\]
+  loose_types = SymbolNode[]
   for symnode in symbols
     if !isleaftype(symnode.typ) && typeof(symnode.typ) == UnionType
       push!(loose_types, symnode)
@@ -561,7 +561,7 @@ end
 ```julia
 ## 对于一个给定函数，对每个方法运行checklooptypes
 function checklooptypes(f::Callable;kwargs...)
-  lrs = LoopResult\[\]
+  lrs = LoopResult[]
   for e in code_typed(f)
     lr = checklooptypes(e)
     if length(lr.lines) > 0 push!(lrs,lr) end
@@ -595,7 +595,7 @@ foo(Int64)::Union(Int64,Float64)
 	s::Union(Int64,Float64)
 	s::Union(Int64,Float64)
 
-julia> checklooptypes(code_typed(foo,(Int,))\[1\])
+julia> checklooptypes(code_typed(foo,(Int,))[1])
 (Int64)::Union(Int64,Float64)
 	s::Union(Int64,Float64)
 	s::Union(Int64,Float64)
@@ -709,7 +709,7 @@ julia> :(x = 5).args
   :x
  5  
 
-julia> :(x = 5).args\[1\]
+julia> :(x = 5).args[1]
 :x
 ```
 
@@ -724,11 +724,11 @@ julia> :(x = 5).args\[1\]
 # 返回：
 #   一个{符号}集合，其中每个元素都出现在e中赋值的左侧。
 #
-function find\_lhs\_variables(e::Expr)
+function find_lhs_variables(e::Expr)
   output = Set{Symbol}()
   for ex in body(e)
     if Base.is_expr(ex,:(=))
-      push!(output,ex.args\[1\])
+      push!(output,ex.args[1])
     end
   end
   return output
@@ -744,7 +744,7 @@ end
 ```julia
   for ex in body(e)
     if Base.is_expr(ex,:(=))
-      push!(output,ex.args\[1\])
+      push!(output,ex.args[1])
     end
   end
 ```
@@ -752,7 +752,7 @@ end
 我们没有深入研究表达式，因为`code_typed` 的AST非常扁平。循环和条件语句已转换为goto控制流的扁平语句。在函数调用的参数中不会隐藏有任何赋值。如果等号左侧有任何符号以外的东西，则此代码将失败。这没有考虑到两个特定的边缘情况：数组访问（如`a[5]` ，将表示为`:ref`表达式）和属性（如`a.head` ，将表示为`:.`表达式）。这些仍始终将相关符号作为其`args`的第一个值，它可能只是藏得深一些（如在`a.property.name.head.other_property` ）。此代码无法处理这些情况，但`if`语句中的几行代码可以解决这个问题。
 
 ```julia
-      push!(output,ex.args\[1\])
+      push!(output,ex.args[1])
 ```
 当我们找到左侧变量时，我们将变量名称`push!` 到`Set`中 。该`Set`能确保我们每个名称只有一个副本。
 
@@ -768,31 +768,31 @@ end
 #
 # 返回: 一个{符号}集合, 其中每个e都在e的右侧表达式中
 #
-function find\_rhs\_variables(e::Expr)
+function find_rhs_variables(e::Expr)
   output = Set{Symbol}()
 
   if e.head == :lambda
     for ex in body(e)
-      union!(output,find\_rhs\_variables(ex))
+      union!(output,find_rhs_variables(ex))
     end
   elseif e.head == :(=)
-    for ex in e.args\[2:end\]  # skip lhs
-      union!(output,find\_rhs\_variables(ex))
+    for ex in e.args[2:end]  # skip lhs
+      union!(output,find_rhs_variables(ex))
     end
   elseif e.head == :return
-    output = find\_rhs\_variables(e.args\[1\])
+    output = find_rhs_variables(e.args[1])
   elseif e.head == :call
     start = 2  # skip function name
-    e.args\[1\] == TopNode(:box) && (start = 3)  # skip type name
-    for ex in e.args\[start:end\]
-      union!(output,find\_rhs\_variables(ex))
+    e.args[1] == TopNode(:box) && (start = 3)  # skip type name
+    for ex in e.args[start:end]
+      union!(output,find_rhs_variables(ex))
     end
   elseif e.head == :if
    for ex in e.args # want to check condition, too
-     union!(output,find\_rhs\_variables(ex))
+     union!(output,find_rhs_variables(ex))
    end
   elseif e.head == :(::)
-    output = find\_rhs\_variables(e.args\[1\])
+    output = find_rhs_variables(e.args[1])
   end
 
   return output
@@ -810,7 +810,7 @@ end
 ```julia
   if e.head == :lambda
     for ex in body(e)
-      union!(output,find\_rhs\_variables(ex))
+      union!(output,find_rhs_variables(ex))
     end
 ```
 
@@ -818,8 +818,8 @@ end
 
 ```julia
   elseif e.head == :(=)
-    for ex in e.args\[2:end\]  # skip lhs
-      union!(output,find\_rhs\_variables(ex))
+    for ex in e.args[2:end]  # skip lhs
+      union!(output,find_rhs_variables(ex))
     end
 ```
 
@@ -827,7 +827,7 @@ end
 
 ```julia
   elseif e.head == :return
-    output = find\_rhs\_variables(e.args\[1\])
+    output = find_rhs_variables(e.args[1])
 ```
 
 如果这是一个return语句，那么`args`的第一个元素是返回了值的表达式。我们将把其中的任何变量添加到我们的集合中。
@@ -835,8 +835,8 @@ end
 ```julia
   elseif e.head == :call
     # 跳过函数名
-    for ex in e.args\[2:end\]
-      union!(output,find\_rhs\_variables(ex))
+    for ex in e.args[2:end]
+      union!(output,find_rhs_variables(ex))
     end
 ```
 
@@ -845,7 +845,7 @@ end
 ```julia
   elseif e.head == :if
    for ex in e.args # want to check condition, too
-     union!(output,find\_rhs\_variables(ex))
+     union!(output,find_rhs_variables(ex))
    end
 ```
 
@@ -853,7 +853,7 @@ end
 
 ```julia
   elseif e.head == :(::)
-    output = find\_rhs\_variables(e.args\[1\])
+    output = find_rhs_variables(e.args[1])
   end
 ```
 
@@ -869,9 +869,9 @@ end
 
 ```julia
 # 递归基本用例，用于简化Expr版本中的控制流
-find\_rhs\_variables(a) = Set{Symbol}()  # 未经处理，应当是立即值，如Int
-find\_rhs\_variables(s::Symbol) = Set{Symbol}(\[s\])
-find\_rhs\_variables(s::SymbolNode) = Set{Symbol}(\[s.name\])
+find_rhs_variables(a) = Set{Symbol}()  # 未经处理，应当是立即值，如Int
+find_rhs_variables(s::Symbol) = Set{Symbol}([s])
+find_rhs_variables(s::SymbolNode) = Set{Symbol}([s.name])
 ```
 
 #### 组合起来
@@ -880,8 +880,8 @@ find\_rhs\_variables(s::SymbolNode) = Set{Symbol}(\[s.name\])
 
 ```julia
 function unused_locals(e::Expr)
-  lhs = find\_lhs\_variables(e)
-  rhs = find\_rhs\_variables(e)
+  lhs = find_lhs_variables(e)
+  rhs = find_rhs_variables(e)
   setdiff(lhs,rhs)
 end
 ```
@@ -889,7 +889,7 @@ end
 `unused_locals`将返回一组变量名称。很容易就可以编写一个函数，来确定`unused_locals`的输出是否可以计为“通过”。如果该集为空，则该方法通过。如果一个函数的所有方法都通过，则此函数通过。下面的函数`check_locals`实现了这个逻辑。
 
 ```julia
-check_locals(f::Callable) = all(\[check_locals(e) for e in code_typed(f)\])
+check_locals(f::Callable) = all([check_locals(e) for e in code_typed(f)])
 check_locals(e::Expr) = isempty(unused_locals(e))
 ```
 
