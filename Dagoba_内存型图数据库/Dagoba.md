@@ -224,7 +224,7 @@ Dagoba.query = function(graph) {                // factory
 
 我们程序中的每个步骤都可以有一个状态，`query.state`就是一个由每一步的状态组成的列表，这个列表和描述步骤的列表`query.program`相对应。
 
-一个精灵(gremlin)是一种在图中游走来完成我们的目标的生物。精灵可能是一个数据库当中最令人惊奇的部分，它们从Tinkerpop里面的Blueprints，以及Gremlin和Pacer查询语言衍生出来。它们记得自己的位置，并且可以回答一些有意思的问题。
+一个精灵(gremlin)是一种在图中游走来完成我们的目标的生物。精灵可能是一个数据库当中最令人惊奇的部分，它们从Tinkerpop里面的Blueprints，以及Gremlin和Pacer查询语句衍生出来。它们记得自己的位置，并且可以回答一些有意思的问题。
 
 回忆一下我们想要回答的一个问题，“Thor的同曾祖的堂兄弟的子女都有谁？”。我们认为`Thor.parents.parents.parents.children.children.children`这种表达方式已经足够优雅。每个父/子的实例都是我们程序中的一个步骤，每一个步骤对应它自己的管道类型(pipetype)，也就是进行这个步骤操作的函数。
 
@@ -259,4 +259,414 @@ Dagoba.G.v = function() {                       // query initializer: g.v() -> q
 ```
 
 请注意`[].slice.call(arguments)`是JS的语法糖，这表示“请把这个函数的参数作为一个数组传递给我”。把参数表示成数组的形式你应该可以理解，因为在很多情况下的表现确实是这样，但是它仍然缺少许多我们在现代的JavaScript当中使用的数组的特性。
+
+## 立即(Eager)求值带来的问题
+
+在讲述管道类型之前，让我们先看一下精彩的策略执行部分。这里面有两个非常主要的流派：一个是“值调用(Call By Value)”家族，也被称作“忙碌海狸(eager beavers)”，这一流派要求函数的所有参数都要在被调用之前完成求值；而另一个相反的流派，被称作“按需调用(Call By Needians)”，将所有的事情都推到不得不做的时候才会去做，换个说法，就是惰性的。
+
+JavaScript是一个严格(strict)的语言，会在每个步骤被调用的时候对他们进行处理。要对`g.v('Thor').out().in()`这个表达式进行求值，我们预期会是这样的步骤：首先找到Thor这个节点，然后找出这一节点在出方向上直接相连的节点，然后再找出这些节点在入方向上相连的所有节点
+
+如果使用非严格(non-strict)的语言，我们也会获得同样的结果，策略执行方式并不造成什么影响。但是，如果我们再加一些调用呢？如果Thor是一个社会关系复杂的人，那么`g.v('Thor').out().out().out().in().in().in()`这个查询会产生非常多的结果，因为我们并不要求结果是经过去重(unique)的，结果甚至会比整个图的节点数量都还多。
+
+我们可能只需要得出一部分不重复的结果，所以我们可以把查询改写成这样：`g.v('Thor').out().out().out().in().in().in().unique().take(10)`。现在我们的查询结果最多有10条。如果我们立即计算会发生什么？我们仍然要求出天文数字一样多的所有结果，而最后只返回前10条。
+
+所有的图数据库都为了尽可能的少做一些计算而努力，也因此大多选择了非严格求值模型。因为我们在构建自己的解释器，因此是可以对程序做到惰性求值的。但也因此不得不面对一些后果。
+
+## 这种心智模型(Mental Model)带来的求值策略的结果
+
+目前为止，我们求值的心智模型都是非常简单的：
+
+<li>查询一个节点集合</li>
+<li>将求得的集合作为输入传递给一个管道</li>
+<li>如果有必要的话，重复这些步骤</li>
+
+给用户呈现这种模型也没有什么问题，因为在这种模型上很容易做一些推断，但是我们上一个小节已经论证过了，实现(implementation)层面不能直接使用这种模型。用户认知的模型和实际实现之间有偏差，这也是痛苦的来源。抽象泄漏(leaky abstraction)还算是个小问题，更严重的，还会导致故障、认知混淆等种种问题。
+
+在这种骗局里面，我们面对的几乎是最佳场景：无论实际的执行模型如何，对于任何查询，答案总是一样的。唯一的区别在于性能。我们可以要求用户在使用系统之前充分了解一个较为复杂的模型，也可以专注于一部分用户，将简单模型迁移到复杂模型来获得更好的查询性能，总之，我们必须在这两者之间做出权衡。
+
+为了做出决策，你需要考虑下面这些因素：
+
+<li>简单模型和复杂模型之间的认知难度差异</li>
+<li>先使用简单模型再进阶到复杂模型，还是跳过简单模型直接使用复杂模型。这两者区别带来的认知负担</li>
+<li>需要进行过渡的用户群体特征，包括用户群体比例、认知能力和可用时间等等</li>
+
+在我们的场景下，这种权衡是合理的。对于大多数的请求来说，都会很快返回结果，因此用户无须特别的优化查询结构或是去了解更深层次的模型。而有一些用户会在大数据集上面使用一些高级(advanced)查询，这些人同样也是更加适于过渡到新模型的用户。此外，我们希望在学习复杂模型之前使用一个简单模型并不会带来非常大的困难。
+
+我们会很快深入到这个新模型的一些细节当中，在进行下一章的过程中，希望你能记住这些重点：
+
+<li>每个管道一次只返回一条结果，而不是一个结果集合。在执行查询过程中，每个管道都有可能会被激活多次</li>
+<li>用一个读写头(read/write head)来控制接下来执行哪个管道。头的初始位置在流水线的最末端，根据当前被激活的管道的输出结果来决定这个头如何移动</li>
+ <li>输出结果可能是上面提及的gremlin之一。每个gremlin代表一个可能的查询结果，他们通过管道来携带一些状态信息。gremlin使得读写头右移。</li>
+<li>管道可能会返回一个“拉取(pull)”结果，这代表着它需要输入数据，让读写头进行右移</li>
+<li>如果结果是“完成(done)”，这意味着在这之前的管道都不会再次被激活了，读写头会进行左移。
+
+## 管道类型
+
+管道类型构成了我们系统的核心。通过理解了每个管道类型是如何工作的，就能更好的了解他们在解释器当中如何被调用和组合到一起。
+
+首先我们找一个地方来存放我们的管道类型，并且提供一个方法来添加新管道类型。
+
+```
+Dagoba.Pipetypes = {}
+
+Dagoba.addPipetype = function(name, fun) {              // adds a chainable method
+  Dagoba.Pipetypes[name] = fun
+  Dagoba.Q[name] = function() {
+    return this.add(name, [].slice.apply(arguments)) }  // capture pipetype and args
+}
+```
+
+管道类型的函数被添加到队列里面，然后一个新的函数被添加到查询对象里面。每个管道类型必须对应一个查询函数。这个函数给查询程序添加了一个新的步骤，以及对应的参数。
+
+当我们对`g.v('Thor').out('parent').in('parent')`这个表达式求值，`v`这个调用会返回一个查询对象，`out`调用会添加一个新步骤然后返回一个查询对象，`in`调用也是一样。这样就组成了我们的调用链接口(method-chaining API)。
+
+请注意，添加一个新的管道类型会将原来已有的同名类型替换掉，这样就允许在运行过程中修改已经存在的管道类型。这个决策会带来什么？有没有什么替代方案？
+
+```
+Dagoba.getPipetype = function(name) {
+  var pipetype = Dagoba.Pipetypes[name]                 // a pipetype is a function
+
+  if(!pipetype)
+    Dagoba.error('Unrecognized pipetype: ' + name)
+
+  return pipetype || Dagoba.fauxPipetype
+}
+```
+
+如果我们找不到某个管道类型，会生成一个错误信息，然后返回一个默认的管道类型，这种管道就像一个空管子：如果接收到一个消息，就把它向另一端传递出去。
+
+```
+Dagoba.fauxPipetype = function(_, _, maybe_gremlin) {   // pass the result upstream
+  return maybe_gremlin || 'pull'                        // or send a pull downstream
+}
+```
+
+注意到下划线了吗？我们使用这个标记来表示函数当中不会使用这些参数。这三个参数大部分函数都要全部使用，这时候三个参数都会被命名。这让我们可以一眼看出来某个特定的管道类型依赖于哪些参数。
+
+下划线的表示方法非常重要，因为它使得注释行更加容易对齐。哈，并不是，我们严肃一些。“程序一定是为让人阅读而写，只是恰好可以被机器执行”，那么接下来我们最关注的是使我们的代码更漂亮。
+
+### 节点(Vertex)
+
+我们会用到的大多数管道类型都是使用一个gremlin来产生更多的gremlin，但是这个特定的管道类型会根据一个字符串来生成gremlin。给定一个节点编号，它就会返回一个新的gremlin。给定一个查询，它会找到所有匹配的节点，并且每次生成一个gremlin，直到所有匹配的节点都被遍历过。
+
+```
+Dagoba.addPipetype('vertex', function(graph, args, gremlin, state) {
+  if(!state.vertices)
+    state.vertices = graph.findVertices(args)       // state initialization
+
+  if(!state.vertices.length)                        // all done
+    return 'done'
+
+  var vertex = state.vertices.pop()                 // OPT: requires vertex cloning
+  return Dagoba.makeGremlin(vertex, gremlin.state)  // gremlins from as/back queries
+})
+```
+
+首先我们检查一下是不是所有匹配的节点都已经集齐，如果不是的话我们需要查找一些结果。如果有任何匹配的节点，我们会取出其中一个，然后返回一个新的gremlin，并把这个节点传递给gremlin。每个gremlin都携带了自己的状态，就像一个日志(journal)，记录了它都到过那里，在这个图上的旅途都有什么有意思的事情。如果我们收到了一个gremlin作为一个步骤的输入，我们会复制它所有的日志。
+
+注意我们在这里直接修改了`state`参数，并且没有将它回传。另一个做法可以返回一个对象，而不是返回一个gremlin或者信号，并且通过这个对象来把状态进行回传。这会使得我们的返回值变得复杂，增加一些额外的垃圾(garbage)。如果JS允许多返回值，这个地方还可以写的更为优雅。
+
+我们还是需要解决修改变量(mutation)的问题，因为调用者仍然有可能持有原始变量的引用。有没有什么方法可以让我们确定某个引用是“排他(unique)”的？——也即当前的这个引用是这个对象唯一的引用。
+
+如果我们能确定某个引用是排他的，那么我们就可以利用不变性(immutability)的良好性质，同时避免了写时复制或者复杂的持久化数据结构。仅通过一个引用，我们无法确定某个对象被修改过，还是返回了一个包含了我们请求的修改的新对象——是否保持了“可见的不变性”
+
+有很多常见方法可以用来检测这种排他性：在静态类型系统中，可以使用排他类型(uniqueness type)在编译期保证每个对象只有一个引用。如果我们有一个引用计数器——甚至是仅有两bit的计数器——我们就能在运行时确定这个对象是否只有一个引用，并且利用这些优势。
+
+JavaScript并没有这些方法可用，但是如果我们非常非常的自律，我们也可以做到一样的效果。至少到目前为止是这样。
+
+## 出边和入边(In-N-Out)
+
+遍历一个图就像点菜一样简单。下面的两行代码设定了`in`和`out`两种管道类型
+
+```
+Dagoba.addPipetype('out', Dagoba.simpleTraversal('out'))
+Dagoba.addPipetype('in',  Dagoba.simpleTraversal('in'))
+```
+
+`simpleTraversal`函数返回了一个管道类型，接受一个gremlin作为输入，然后每次查询的时候生成一个新的gremlin。一旦这些gremlin都完成了之后，它会返回一个“拉取”请求，来从它的上一级获取新的gremlin。
+
+```
+Dagoba.simpleTraversal = function(dir) {
+  var find_method = dir == 'out' ? 'findOutEdges' : 'findInEdges'
+  var edge_list   = dir == 'out' ? '_in' : '_out'
+
+  return function(graph, args, gremlin, state) {
+    if(!gremlin && (!state.edges || !state.edges.length))          // query initialization
+      return 'pull'
+
+    if(!state.edges || !state.edges.length) {                      // state initialization
+      state.gremlin = gremlin
+      state.edges = graph[find_method](gremlin.vertex)             // get matching edges
+        .filter(Dagoba.filterEdges(args[0]))
+    }
+
+    if(!state.edges.length)                                        // nothing more to do
+      return 'pull'
+
+    var vertex = state.edges.pop()[edge_list]                      // use up an edge
+    return Dagoba.gotoVertex(state.gremlin, vertex)
+  }
+}
+```
+
+最前面两行代码处理了出方向版本(in version)和入方向版本(out version)的区别。然后准备返回管道类型函数，和我们之前看过的`vertex`管道类型非常像。但有一点令人惊奇的是，这个管道接收了一个gremlin作为参数，而`vertex`管道类型是从无到有创造了一个gremlin出来。
+
+但我们也看到了，出现了一些同样的情形，添加了查询初始化的步骤。如果没有给定gremlin，而且当前没有可用的边，就发起一次拉取。如果我们有一个gremlin但是还没有被设定状态，我们就在指定的方向上找到任意的边，然后把它添加到我们的状态当中。如果gremlin当前的节点没有合适的边可以添加，那么我们就再次发起拉取。最终我们会获取出来一条边，并且在这条边所指向的节点上复制一个新的gremlin以返回。
+
+再看一眼这个代码，`!state.edges.length`在三个代码块里面被分别重复了一次。要不要对这部分进行重构，来降低这些条件的复杂度呢？这看起来很诱人，但是出于以下两点原因，我们不会这么做。
+
+第一个原因比较弱：第三个`!state.edges.length`语句和前两个意义完全不一样，因为在第二个和第三个条件之间`state.edges`已经发生了变化。这实际上鼓励了我们去做重构，因为在一个函数内相同的标签却代表了不同的事物，这通常不是个理想状态。
+
+第二个原因更严重一些。这不是我们需要写的唯一一个管道类型函数，我们会一次又一次的重复这种查询初始化以及状态初始化的工作。在编码过程中，始终要在结构化和非结构化之中做权衡。过分的结构化会让你在复杂的模板和抽象当中花费大量精力。太少的结构化会让你不得不在记忆中维护非常多的细枝末节。
+
+在这个case当中，我们有十几个左右的管道类型需要处理，正确的做法应当是让所有的管道类型函数尽可能保持风格一致，并且在每个要素上添加注释。所以我们需要一直抑制重构的冲动，因为这么做会有损一致性。我们也要抑制那种想要购买一个通用的结构来抽象查询初始化、状态初始化等等步骤的想法。如果有上百种管道函数类型，那么后一种选择可能是合适的，抽象的复杂度带来的消耗是固定不变的，而收益会随着使用这一抽象的单元(units)数量增长而线性增长。当处理许许多多这样的移动部件(moving pieces)时，使用任何强制措施来保证部件之间的规律性都是有益的。
+
+## 属性(Property)
+
+让我们稍停片刻，基于我们已经介绍的三种管道类型，思考下面这个样例查询。我们可以像这样查询Thor的祖父母：
+
+```
+g.v('Thor').out('parent').out('parent').run()
+```
+
+如果我们还想知道他们的名字呢？我们可以在末尾加一个map调用：
+
+```
+g.v('Thor').out('parent').out('parent').run()
+ .map(function(vertex) {return vertex.name})
+ ```
+
+但是我们可能更愿意采用一些更加普通的方法，比如这样：
+
+```
+g.v('Thor').out('parent').out('parent').property('name').run()
+```
+
+这种方式下，`property`这个管道是属于查询这个整体的，并不是缀在后面的一部分。这也有一些有趣的好处，我们会很快加以说明
+
+```
+Dagoba.addPipetype('property', function(graph, args, gremlin, state) {
+  if(!gremlin) return 'pull'                                  // query initialization
+  gremlin.result = gremlin.vertex[args[0]]
+  return gremlin.result == null ? false : gremlin             // false for bad props
+})
+```
+
+查询的初始化缓解非常普通：如果没有gremlin，就发起拉取。如果已经有了gremlin，那么我们把属性值赋给它的`result`字段。这个gremlin还可以继续向前移动。如果这个gremlin通过了最后一个管道，那么`result`字段会收集结果并作为查询的结果返回 。不是所有的gremlin都有`result`这个字段，因此并不会返回它最近一次访问的节点信息。
+
+请注意，如果指定的属性不存在，我们选择返回`false`而不是一个gremlin，所以属性管道也起到了按类型过滤的作用。你能想到它的一些用处么？这个设计决策上做了哪些权衡呢？
+
+## 去重
+
+如果我们希望找到Thor的所有祖父母的所有孙子女——他的表亲、他的兄弟姐妹以及他自己，我们会做这样一个查询：`g.v('Thor').in().in().out().out().run()`。然而，这会获得许多重复的结果。事实上，Thor自己就会至少重复出现四次。（你可以想出来什么场景下会重复次数更多么？）
+
+为了解决这个问题，我们引入一个新的管道类型，命名为“去重(unique)”。我们的新查询会得出没有重复的结果：
+
+```
+g.v('Thor').in().in().out().out().unique().run()
+```
+
+这个管道类型的实现：
+
+```
+Dagoba.addPipetype('unique', function(graph, args, gremlin, state) {
+  if(!gremlin) return 'pull'                                  // query initialization
+  if(state[gremlin.vertex._id]) return 'pull'                 // reject repeats
+  state[gremlin.vertex._id] = true
+  return gremlin
+})
+```
+
+去重管道是一个纯粹的过滤器：它要么直接传递没有被修改过的gremlin，要么从上一个管道拉取新的gremlin。
+
+我们从收集新的gremlin开始。如果这个gremlin当前的节点在我们的缓存当中，这意味着在此之前我们已经遍历过它了。否则，我们将这个gremlin的当前节点加入到缓存当中，并且将它原样传递。简单至极。
+
+## 过滤
+
+我们已经讲过两种简单的过滤了，但是有些时候，我们会需要一些更加复杂的限制条件。如果想要找出Thor的兄弟们当中那些体重大于身高的人，我们可以这样查询:
+
+```
+g.v('Thor').out().in().unique()
+ .filter(function(asgardian) { return asgardian.weight > asgardian.height })
+ .run()
+```
+
+如果我们想要知道Thor的兄弟当中哪些人幸存下来，我们可以插入这样一个过滤器：
+
+```
+g.v('Thor').out().in().unique().filter({survives: true}).run()
+```
+
+它是这样工作的：
+
+```
+Dagoba.addPipetype('filter', function(graph, args, gremlin, state) {
+  if(!gremlin) return 'pull'                            // query initialization
+
+  if(typeof args[0] == 'object')                        // filter by object
+    return Dagoba.objectFilter(gremlin.vertex, args[0])
+      ? gremlin : 'pull'
+
+  if(typeof args[0] != 'function') {
+    Dagoba.error('Filter is not a function: ' + args[0])
+    return gremlin                                      // keep things moving
+  }
+
+  if(!args[0](gremlin.vertex, gremlin)) return 'pull'   // gremlin fails filter
+  return gremlin
+})
+```
+
+如果过滤器的第一个参数不是一个对象或者函数，那我们就触发一个错误，然后将gremlin继续传递。稍等一下，考虑一下这个地方。错误已经发生了，我们为什么还决定继续执行这个查询呢？
+
+这个地方发生错误有两种原因。第一种原因，程序员在查询当中输入了一个函数，无论是在REPL当中还是直接写在了代码里。一种情况，运行这个查询会返回结果，与此同时产生一个程序员可以观测到的错误。程序员会纠正这个错误，直到计算出正确的结果集合。或者，系统只显示出错误，而不产出任何结果，直到修复所有的错误才显示出结果。
+There are two reasons this error might arise. The first involves a programmer typing in a query, either in a REPL or directly in code. When run, that query will produce results, and also generate a programmer-observable error. The programmer then corrects the error to further filter the set of results produced. Alternatively, the system could display only the error and produce no results, and fixing all errors would allow results to be displayed.
+
+第二种可能的原因是过滤器是在运行过程中被动态修改的。这是一种更加重要的场景，因为调用查询的人不一定是这个查询代码的作者。在Web领域，我们默认的守则是，永远显示结果，不打破任何东西。通常来说，遇到麻烦时硬着头皮撑场面要好于把严重的错误信息展示在用户面前。
+
+对于那些显示太少结果好于显示过多结果的场景而言，可以重写`Dagoba.error`来抛出错误，来避开原生的控制流程。
+
+## 截取(Take)
+
+我们不总是想一次取回所有结果。有时我们只想取回相当少量的结果；比如说我们想找到十几个Thor的同龄人，我们又回到这个初始的问题：
+
+```
+g.v('Thor').out().out().out().out().in().in().in().in().unique().take(12).run()
+```
+
+如果没有这个截取管道，这个查询会运行非常长时间，但是由于我们的惰性求值策略，这个查询实际上非常高效。
+
+有时我们只需要每次取一条结果：我们取回结果，对它做一些处理，然后返回来再取下一条。这种管道类型就允许我们这样做。
+
+```
+q = g.v('Auðumbla').in().in().in().property('name').take(1)
+
+q.run() // ['Odin']
+q.run() // ['Vili']
+q.run() // ['Vé']
+q.run() // []
+```
+
+我们的查询可以运行在一个异步化的环境里面，让我们可以再需要获取更多的结果时进行收集。当所有结果都取出之后，返回一个空数组。
+
+```
+Dagoba.addPipetype('take', function(graph, args, gremlin, state) {
+  state.taken = state.taken || 0                              // state initialization
+
+  if(state.taken == args[0]) {
+    state.taken = 0
+    return 'done'                                             // all done
+  }
+
+  if(!gremlin) return 'pull'                                  // query initialization
+  state.taken++
+  return gremlin
+})
+```
+
+如果`state.taken`还没有被初始化过，那就设它为0。JavaScript有隐式转换，但是默认会将未定义变量初始化为NaN，所以我们在这里进行显示的操作。
+
+当`state.taken`到达了`args[0]`的限制，我们会返回'done'，停掉前面的管道。同时清掉`state.taken`计数器，允许我们稍后重复执行这个请求。
+
+我们处理了这两个步骤之后才做查询的初始化操作，这是为了解决`take(0)`和`take()`的问题。然后我们增加计数器，然后返回gremlin。
+
+## 别名(As)
+
+接下来要介绍的四个管道类型组合在一起工作，让我们可以使用更多的进阶(advanced)查询。这一个管道类型允许我们给当前的节点进行标记。而下面的两个管道类型会使用这些标记。
+
+```
+Dagoba.addPipetype('as', function(graph, args, gremlin, state) {
+  if(!gremlin) return 'pull'                                  // query initialization
+  gremlin.state.as = gremlin.state.as || {}                   // init the 'as' state
+  gremlin.state.as[args[0]] = gremlin.vertex                  // set label to vertex
+  return gremlin
+})
+```
+
+在查询完成初始化之后，我们要确保gremlin的本地状态当中一定有一个`as`参数。我们将这个gremlin当前的节点复制给这个`as`参数。
+
+## 融合(Merge)
+
+我们标记好了节点之后就可以使用融合操作来提取出来将它们提取出来。如果我们想查找Thor的父母、祖父母、曾祖父母，我们可以这样做：
+
+```
+g.v('Thor').out().as('parent').out().as('grandparent').out().as('great-grandparent')
+           .merge('parent', 'grandparent', 'great-grandparent').run()
+```
+
+下面是融合管道类型的实现：
+
+```
+Dagoba.addPipetype('merge', function(graph, args, gremlin, state) {
+  if(!state.vertices && !gremlin) return 'pull'               // query initialization
+
+  if(!state.vertices || !state.vertices.length) {             // state initialization
+    var obj = (gremlin.state||{}).as || {}
+    state.vertices = args.map(function(id) {return obj[id]}).filter(Boolean)
+  }
+
+  if(!state.vertices.length) return 'pull'                    // done with this batch
+
+  var vertex = state.vertices.pop()
+  return Dagoba.makeGremlin(vertex, gremlin.state)
+})
+```
+
+我们遍历每一个参数，来检查它是不是在gremlin记录的被标记的节点中。如果我们能找到，那就把这个节点复制到gremlin里面。请注意，只有进入了这个管道的gremlin才会出现在这个merge操作当中——如果Thor的母亲的父母不在这个图中，她也不会在结果集里面。
+
+## 异常(Except)
+
+我们已经介绍过了“给出Thor的所有不是Thor本人的兄弟姐妹”这种查询。我们可以通过`filter`来完成：
+
+```
+g.v('Thor').out().in().unique()
+           .filter(function(asgardian) {return asgardian._id != 'Thor'}).run()
+```
+
+用`as`和`except`这两种管道会更直观一些：
+
+```
+g.v('Thor').as('me').out().in().except('me').unique().run()
+```
+
+也有一些查询很难进行直接过滤。如果我们想要查找Thor的叔叔和阿姨呢？我们怎样过滤掉他的父母呢？使用`as`和`except`会比较容易：
+
+```
+g.v('Thor').out().as('parent').out().in().except('parent').unique().run()
+
+Dagoba.addPipetype('except', function(graph, args, gremlin, state) {
+  if(!gremlin) return 'pull'                                  // query initialization
+  if(gremlin.vertex == gremlin.state.as[args[0]]) return 'pull'
+  return gremlin
+})
+```
+
+这里我们检查当前的节点是不是和我们之前存储的一样。如果是这样就跳过它。
+
+## 回溯(Back)
+
+面对某一些问题时，我们可能需要在某一步去做更进一步的验证，如果验证得到的结果是肯定的，再回到原来的那个地方。设想我们想知道Fjörgynn的哪些女儿育有Bestla的一个儿子？
+
+```
+g.v('Fjörgynn').in().as('me')       // first gremlin's state.as is Frigg
+ .in()                              // first gremlin's vertex is now Baldr
+ .out().out()                       // clone that gremlin for each grandparent
+ .filter({_id: 'Bestla'})           // keep only the gremlin on grandparent Bestla
+ .back('me').unique().run()         // jump gremlin's vertex back to Frigg and exit
+```
+
+这是回溯的定义：
+
+```
+Dagoba.addPipetype('back', function(graph, args, gremlin, state) {
+  if(!gremlin) return 'pull'                                  // query initialization
+  return Dagoba.gotoVertex(gremlin, gremlin.state.as[args[0]])
+})
+```
+
+我们在这里使用了`Dagoba.gotoVertex`这个辅助函数来做实际的计算。我们稍后会介绍这个函数以及其他的一些辅助函数
+
+# 辅助函数
+
+以上介绍的管道类型依赖于一些辅助函数来完成计算。让我们在深入解释器之前快速浏览一下这些函数。
 
