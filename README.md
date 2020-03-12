@@ -29,7 +29,7 @@
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|静态检查|
 |[A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板引擎](http://www.jianshu.com/p/b5d4aa45e771)|
 |[A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
-|[Contingent: A Fully Dynamic System](http://aosabook.org/en/500L/contingent-a-fully-dynamic-build-system.html)|Brandon Rhodes and Daniel Rocco|[动态构建系统](https://github.com/JoyceCoder/500LineorLess_CN/blob/master/%E5%8A%A8%E6%80%81%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9FContingent%20A%20Fully%20Dynamic%20Build%20System/ex6-contigent.ipynb)|
+|[Contingent: A Fully Dynamic System](http://aosabook.org/en/500L/contingent-a-fully-dynamic-build-system.html)|Brandon Rhodes and Daniel Rocco|[动态构建系统](https://github.com/JoyceCoder/500LineorLess_CN/blob/master/%E5%8A%A8%E6%80%81%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9FContingent%20A%20Fully%20Dynamic%20Build%20System)|
 
 ## 术语库
 
