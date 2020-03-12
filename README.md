@@ -17,18 +17,19 @@
 |[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|[高效爬虫与协程](https://linux.cn/article-8265-1.html)|
 |[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|Dagoba:内存中的图形数据库|
 |[DBDB: Dog Bed Database](http://aosabook.org/en/500L/pages/dbdb-dog-bed-database.html)|Taavi Burns|[DBDB:非关系型数据库](https://github.com/HT524/500LineorLess_CN/blob/master/DBDB_Dog%20Bed%20Database/DBDB_%E9%9D%9E%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93.md)|
-|[A Flow Shop Scheduler](http://aosabook.org/en/500L/pages/a-flow-shop-scheduler.html)|Dr. Christian Muise|Flow Shop 调度问题|
+|[A Flow Shop Scheduler](http://aosabook.org/en/500L/pages/a-flow-shop-scheduler.html)|Dr. Christian Muise|[Flow Shop 调度问题](https://github.com/JoyceCoder/500LineorLess_CN/tree/master/Flow Shop调度问题 A Flow Shop Scheduler)|
 |[An Archaeology-Inspired Database](http://aosabook.org/en/500L/pages/an-archaeology-inspired-database.html)|Yoav Rubin|Python 实现数据库|
-|[	A Python Interpreter Written in Python](http://aosabook.org/en/500L/pages/a-python-interpreter-written-in-python.html)|Allison Kaptur|[Python 解析器](https://linux.cn/article-7753-1.html)|
+|[A Python Interpreter Written in Python](http://aosabook.org/en/500L/pages/a-python-interpreter-written-in-python.html)|Allison Kaptur|[Python 解析器](https://linux.cn/article-7753-1.html)|
 |[A 3D Modeller](http://aosabook.org/en/500L/pages/a-3d-modeller.html)|Erick Dransch|3D建模|
-|[	A Simple Object Model](http://aosabook.org/en/500L/pages/a-simple-object-model.html)|Carl Friedrich Bolz|[简易对象模型](http://manjusaka.itscoder.com/2016/12/15/A-Simple-Object-Model/)|
+|[A Simple Object Model](http://aosabook.org/en/500L/pages/a-simple-object-model.html)|Carl Friedrich Bolz|[简易对象模型](http://manjusaka.itscoder.com/2016/12/15/A-Simple-Object-Model/)|
 |[Optical Character Recognition (OCR)](http://aosabook.org/en/500L/pages/optical-character-recognition-ocr.html)|Marina Samuel|[光学文字识别](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%20Optical%20Character%20Recognition%20(OCR)%2F%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB.md)|
 |[A Pedometer in the Real World](http://aosabook.org/en/500L/pages/a-pedometer-in-the-real-world.html)|Dessy Daskalov|现实计步器|
-|[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|[决策取样器](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler.md)|
-|[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)|Audrey Tang|Web 电子表格[(繁体中文版)](https://github.com/aosabook/500lines/blob/master/spreadsheet/spreadsheet.zh-tw.markdown)|
+|[A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|[决策取样器](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler.md)|
+|[Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)|Audrey Tang|Web 电子表格[(繁体中文版)](https://github.com/aosabook/500lines/blob/master/spreadsheet/spreadsheet.zh-tw.markdown)|
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|静态检查|
 |[A Template Engine](http://aosabook.org/en/500L/pages/a-template-engine.html)|Ned Batchelder|[模板引擎](http://www.jianshu.com/p/b5d4aa45e771)|
-|[	A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
+|[A Simple Web Server](http://aosabook.org/en/500L/pages/a-simple-web-server.html)|Greg Wilson|[简易Web服务器](https://github.com/HT524/500LineorLess_CN/blob/master/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8%20A%20simple%20web%20server/%E7%AE%80%E6%98%93web%E6%9C%8D%E5%8A%A1%E5%99%A8.md)|
+|[Contingent: A Fully Dynamic System](http://aosabook.org/en/500L/contingent-a-fully-dynamic-build-system.html)|Brandon Rhodes and Daniel Rocco|[动态构建系统](https://github.com/JoyceCoder/500LineorLess_CN/tree/master/动态构建系统Contingent A Fully Dynamic Build System)|
 
 ## 术语库
 
@@ -50,7 +51,7 @@
 |A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|翻译中|
 |Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|翻译中|
 |DBDB: Dog Bed Database|[JinXJinX](https://github.com/JinXJinX)|已完成|
-|A Flow Shop Scheduler|待认领||
+|A Flow Shop Scheduler|[JoyceCoder](https://github.com/JoyceCoder)|已完成|
 |An Archaeology-Inspired Database|待认领||
 |A Python Interpreter Written in Python|[qingyunha](https://github.com/qingyunha)|已完成|
 |A 3D Modeller|[Kalung Tsang](https://github.com/TsangKalung)|翻译中|
@@ -62,3 +63,5 @@
 |Static Analysis|待认领||
 |A Template Engine|[treelake](http://www.jianshu.com/users/66f24f2c0f36/latest_articles)|已完成|
 |A Simple Web Server|[skhe](https://github.com/skhe)|已完成|
+|Contingent:A Fully Dynamic System|[JoyceCoder](https://github.com/JoyceCoder)|已完成|
+
