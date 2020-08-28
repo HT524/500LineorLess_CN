@@ -23,7 +23,7 @@
 |[A 3D Modeller](http://aosabook.org/en/500L/pages/a-3d-modeller.html)|Erick Dransch|3D建模|
 |[	A Simple Object Model](http://aosabook.org/en/500L/pages/a-simple-object-model.html)|Carl Friedrich Bolz|[简易对象模型](http://manjusaka.itscoder.com/2016/12/15/A-Simple-Object-Model/)|
 |[Optical Character Recognition (OCR)](http://aosabook.org/en/500L/pages/optical-character-recognition-ocr.html)|Marina Samuel|[光学文字识别](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%20Optical%20Character%20Recognition%20(OCR)%2F%E5%85%89%E5%AD%A6%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB.md)|
-|[A Pedometer in the Real World](http://aosabook.org/en/500L/pages/a-pedometer-in-the-real-world.html)|Dessy Daskalov|现实计步器|
+|[A Pedometer in the Real World](http://aosabook.org/en/500L/pages/a-pedometer-in-the-real-world.html)|Dessy Daskalov|[计步器与Python图解](https://zhuanlan.zhihu.com/p/167900043)|
 |[	A Rejection Sampler](http://aosabook.org/en/500L/pages/a-rejection-sampler.html)|Jessica B. Hamrick|[决策取样器](https://github.com/HT524/500LineorLess_CN/blob/master/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler/%E5%86%B3%E7%AD%96%E9%87%87%E6%A0%B7%E5%99%A8_A_Rejection_Sampler.md)|
 |[	Web Spreadsheet](http://aosabook.org/en/500L/pages/web-spreadsheet.html)|Audrey Tang|Web 电子表格[(繁体中文版)](https://github.com/aosabook/500lines/blob/master/spreadsheet/spreadsheet.zh-tw.markdown)|
 |[Static Analysis](http://aosabook.org/en/500L/pages/static-analysis.html)|Leah Hanson|静态检查|
