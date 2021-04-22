@@ -56,7 +56,7 @@
 |A 3D Modeller|[Kalung Tsang](https://github.com/TsangKalung)|翻译中|
 |A Simple Object Model|[Manjusaka](http://manjusaka.itscoder.com/)|已完成|
 |Optical Character Recognition (OCR)|[Alovez](https://github.com/Alovez)|已完成|
-|A Pedometer in the Real World|待认领||
+|A Pedometer in the Real World|[Austin](https://www.zhihu.com/people/link-hs)|已完成|
 |A Rejection Sampler|[Hideki_Nakamoto](https://github.com/inamoto85)|已完成|
 |Web Spreadsheet|待认领||
 |Static Analysis|待认领||
