@@ -5,6 +5,8 @@
 
 [英文项目地址](https://github.com/aosabook/500lines/blob/master/README.md)
 
+**在线阅读**：[https://500lines-cn.skhe.net/](https://500lines-cn.skhe.net/)
+
 **在翻译过程，发现部分文章有译者已经完成，该部分将不再翻译，并在下列表格中给出链接。**
 
 ## 对应表
@@ -15,7 +17,7 @@
 |[A Continuous Integration System](http://aosabook.org/en/500L/pages/a-continuous-integration-system.html)|Malini Das|[持续集成系统](https://github.com/HT524/500LineorLess_CN/blob/master/%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E7%B3%BB%E7%BB%9F%20A%20Continuous%20Integration%20System/%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E7%B3%BB%E7%BB%9F.md)|
 |[Clustering by Consensus](http://aosabook.org/en/500L/pages/clustering-by-consensus.html)|Dustin J. Mitchell|[分布式系统](https://github.com/HT524/500LineorLess_CN/blob/master/Clustering%20by%20Consensus/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F.md)|
 |[A Web Crawler With asyncio Coroutines](http://aosabook.org/en/500L/pages/a-web-crawler-with-asyncio-coroutines.html)|A. Jesse Jiryu Davis and Guido van Rossum|[高效爬虫与协程](https://linux.cn/article-8265-1.html)|
-|[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|Dagoba:内存中的图形数据库|
+|[Dagoba: an in-memory graph database](http://aosabook.org/en/500L/pages/dagoba-an-in-memory-graph-database.html)|Dann Toliver|[Dagoba:内存中的图形数据库](https://github.com/HT524/500LineorLess_CN/blob/master/Dagoba_%E5%86%85%E5%AD%98%E5%9E%8B%E5%9B%BE%E6%95%B0%E6%8D%AE%E5%BA%93/Dagoba.md)|
 |[DBDB: Dog Bed Database](http://aosabook.org/en/500L/pages/dbdb-dog-bed-database.html)|Taavi Burns|[DBDB:非关系型数据库](https://github.com/HT524/500LineorLess_CN/blob/master/DBDB_Dog%20Bed%20Database/DBDB_%E9%9D%9E%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93.md)|
 |[A Flow Shop Scheduler](http://aosabook.org/en/500L/pages/a-flow-shop-scheduler.html)|Dr. Christian Muise|[Flow Shop 调度问题](https://github.com/HT524/500LineorLess_CN/blob/master/Flow%20Shop%E8%B0%83%E5%BA%A6%E9%97%AE%E9%A2%98%20A%20Flow%20Shop%20Scheduler)|
 |[An Archaeology-Inspired Database](http://aosabook.org/en/500L/pages/an-archaeology-inspired-database.html)|Yoav Rubin|[考古学启发的数据库](https://github.com/HT524/500LineorLess_CN/blob/master/%E8%80%83%E5%8F%A4%E5%AD%A6%E5%90%AF%E5%8F%91%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%20An%20Archaeology-Inspired%20Database/%E8%80%83%E5%8F%A4%E5%AD%A6%E5%90%AF%E5%8F%91%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93.md)|
@@ -48,8 +50,8 @@
 |Blockcode: A visual programming toolkit|[taozi_cao](http://my.csdn.net/cwt8805)|已完成|
 |A Continuous Integration System|[Alovez](https://github.com/Alovez)|已完成|
 |Clustering by Consensus|[escapecat](https://github.com/escapecat), Claude, [skhe](https://github.com/skhe)|已完成|
-|A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|翻译中|
-|Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|翻译中|
+|A Web Crawler With asyncio Coroutines|[harold](https://github.com/haroldrandom) , [skhe](https://github.com/skhe)|已完成|
+|Dagoba: an in-memory graph database|[yanwang10](https://github.com/yanwang10)|已完成|
 |DBDB: Dog Bed Database|[JinXJinX](https://github.com/JinXJinX)|已完成|
 |A Flow Shop Scheduler|[allenwoods](https://github.com/allenwoods) , [JoyceCoder](https://github.com/JoyceCoder)|已完成|
 |An Archaeology-Inspired Database|Claude, [skhe](https://github.com/skhe)|已完成|
