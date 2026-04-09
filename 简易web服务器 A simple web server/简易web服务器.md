@@ -302,7 +302,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.full_path = os.getcwd() + self.path
             # Figure out how to handle it.
             for case in self.Cases:
-                handler = case()
+                handler = case
                 if handler.test(self):
                     handler.act(self)
                     break
